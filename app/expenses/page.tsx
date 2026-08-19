@@ -437,11 +437,12 @@ export default function ExpensesPage() {
       />
 
       {/* SUMMARY CARDS */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Vehicle Expenses" value={currency(lifetimeStats.totalVehicleExpenses)} icon={Truck} tone="primary" />
         <StatCard label="Inventory Purchases" value={currency(lifetimeStats.totalInventoryExpenses)} icon={Boxes} tone="primary" />
         <StatCard label="Custom Expenses" value={currency(lifetimeStats.totalCustomExpenses)} icon={DollarSign} tone="success" />
         <StatCard label="Total Maintenance" value={currency(lifetimeStats.totalMaintenanceCost)} icon={Wrench} tone="warning" />
+        <StatCard label="Total Repair" value={currency(lifetimeStats.totalRepairCost)} icon={Hammer} tone="destructive" />
         <StatCard label="Grand Total Expenses" value={currency(lifetimeStats.grandTotal)} icon={DollarSign} tone="primary" />
       </div>
 
