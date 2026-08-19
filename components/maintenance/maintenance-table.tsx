@@ -30,11 +30,12 @@ import {
 } from '@/components/ui/table'
 import { useAuth } from '@/components/auth-provider'
 import { useData } from '@/components/data-provider'
-import { MaintenanceFormDialog } from '@/components/forms/entity-forms'
+import { MaintenanceFormDialog } from '@/components/maintenance/maintenance-form'
 import { currency, sumItems, type Maintenance } from '@/lib/data'
 
 export function MaintenanceTable() {
-  const { can } = useAuth()
+  const { can, user } = useAuth()
+  const isAdmin = user?.role === 'Admin'
   const { maintenance, deleteMaintenance } = useData()
   const [selected, setSelected] = useState<Maintenance | null>(null)
   const [editing, setEditing] = useState<Maintenance | null>(null)
@@ -61,14 +62,19 @@ export function MaintenanceTable() {
       ),
     },
     { key: 'type', header: 'Type', render: (m) => m.type },
-    { key: 'vendor', header: 'Vendor', render: (m) => m.vendor },
     { key: 'date', header: 'Date', render: (m) => m.date },
-    { key: 'next', header: 'Next Due', render: (m) => m.nextDate },
     {
       key: 'cost',
       header: 'Cost',
       render: (m) => (
-        <span className="font-medium">{currency(sumItems(m.items || []))}</span>
+        <span className="font-medium">{currency(m.cost && m.cost > 0 ? m.cost : sumItems(m.items || []))}</span>
+      ),
+    },
+    {
+      key: 'createdBy',
+      header: 'Created By',
+      render: (m) => (
+        <span className="text-xs font-medium text-foreground">{m.createdBy || 'Daniel Okoro (Admin)'}</span>
       ),
     },
     { key: 'status', header: 'Status', render: (m) => <StatusBadge status={m.status} /> },
@@ -84,18 +90,18 @@ export function MaintenanceTable() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setSelected(m)}>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelected(m); }}>
               <Eye className="size-4" /> View
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!can('manage:maintenance')}
-              onClick={() => setEditing(m)}
+              onClick={(e) => { e.stopPropagation(); setEditing(m); }}
             >
               <Pencil className="size-4" /> Edit
             </DropdownMenuItem>
             <DropdownMenuItem
-              disabled={!can('manage:maintenance')}
-              onClick={() => setDeleting(m)}
+              disabled={!isAdmin}
+              onClick={(e) => { e.stopPropagation(); setDeleting(m); }}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="size-4" /> Delete
@@ -111,8 +117,8 @@ export function MaintenanceTable() {
       <DataTable
         data={maintenance}
         columns={columns}
-        searchKeys={['id', 'vehicleName', 'type', 'vendor']}
-        searchPlaceholder="Search maintenance records..."
+        searchKeys={['id', 'vehicleName', 'type', 'vendor', 'createdBy']}
+        searchPlaceholder="Search maintenance records or creator..."
         filter={{
           placeholder: 'All statuses',
           options: ['Scheduled', 'In Progress', 'Completed'],
@@ -129,7 +135,7 @@ export function MaintenanceTable() {
               <DialogHeader>
                 <DialogTitle>{selected.id}</DialogTitle>
                 <DialogDescription>
-                  {selected.vehicleName} · {selected.type} · {selected.vendor}
+                  {selected.vehicleName} · {selected.type} · Created by: {selected.createdBy || 'Daniel Okoro (Admin)'}
                 </DialogDescription>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">{selected.description}</p>
@@ -160,7 +166,7 @@ export function MaintenanceTable() {
                       Total Cost
                     </TableCell>
                     <TableCell className="text-right text-base font-semibold text-primary">
-                      {currency(sumItems(selected.items || []))}
+                      {currency(selected.cost && selected.cost > 0 ? selected.cost : sumItems(selected.items || []))}
                     </TableCell>
                   </TableRow>
                 </TableFooter>

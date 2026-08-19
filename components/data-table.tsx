@@ -35,11 +35,18 @@ export type FilterConfig = {
   options: string[]
 }
 
+export type SingleFilterConfig<T> = {
+  placeholder?: string
+  options: string[]
+  accessor: (row: T) => any
+}
+
 export function DataTable<T extends Record<string, any>>({
   data,
   columns,
   searchKeys,
   searchPlaceholder = "Search...",
+  filter,
   filters,
   toolbar,
   onRowClick,
@@ -48,11 +55,13 @@ export function DataTable<T extends Record<string, any>>({
   columns: Column<T>[]
   searchKeys: (keyof T)[]
   searchPlaceholder?: string
+  filter?: SingleFilterConfig<T>
   filters?: FilterConfig[]
   toolbar?: ReactNode
   onRowClick?: (row: T) => void
 }) {
   const [query, setQuery] = useState("")
+  const [singleFilterVal, setSingleFilterVal] = useState("all")
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
@@ -75,13 +84,17 @@ export function DataTable<T extends Record<string, any>>({
             .toLowerCase()
             .includes(query.toLowerCase()),
         )
+      const matchesSingleFilter =
+        !filter ||
+        singleFilterVal === "all" ||
+        String(filter.accessor(row)) === singleFilterVal
       const matchesFilters =
         !filters ||
         filters.every((f) => {
           const v = filterValues[f.key]
           return !v || v === "all" || String(row[f.key]) === v
         })
-      return matchesQuery && matchesFilters
+      return matchesQuery && matchesSingleFilter && matchesFilters
     })
 
     if (sortKey) {
@@ -112,6 +125,21 @@ export function DataTable<T extends Record<string, any>>({
             className="h-9 pl-9"
           />
         </div>
+        {filter && (
+          <Select value={singleFilterVal} onValueChange={setSingleFilterVal}>
+            <SelectTrigger className="h-9 w-full sm:w-44">
+              <SelectValue placeholder={filter.placeholder || "Filter"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{filter.placeholder || "All"}</SelectItem>
+              {filter.options.map((o) => (
+                <SelectItem key={o} value={o}>
+                  {o}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         {filters?.map((f) => (
           <Select
             key={f.key}

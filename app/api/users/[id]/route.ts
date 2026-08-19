@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserById, updateUser, deleteUser } from '@/services/userService'
 import { userSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const requester = await getAuthenticatedUser()
+    if (!requester) return unauthorizedResponse()
+    if (requester.role !== 'Admin') return forbiddenResponse('Only Admins can view users details')
+
     const { id } = await params
     const user = await getUserById(id)
     if (!user) {
@@ -19,6 +24,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const requester = await getAuthenticatedUser()
+    if (!requester) return unauthorizedResponse()
+    if (requester.role !== 'Admin') return forbiddenResponse('Only Admins can update users')
+
     const { id } = await params
     const body = await req.json()
     const validatedData = userSchema.partial().parse(body)
@@ -31,8 +40,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await createAuditLog({
       action: `Updated user ${updated.name} (${updated.email})`,
       entity: updated.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: requester.name,
+      role: requester.role,
       type: 'Update',
     }).catch(() => {})
 
@@ -51,6 +60,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const requester = await getAuthenticatedUser()
+    if (!requester) return unauthorizedResponse()
+    if (requester.role !== 'Admin') return forbiddenResponse('Only Admins can delete users')
+
     const { id } = await params
     const user = await getUserById(id)
     const deleted = await deleteUser(id)
@@ -62,8 +75,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await createAuditLog({
       action: `Deleted user ${user?.name || id}`,
       entity: id,
-      user: 'Admin',
-      role: 'Admin',
+      user: requester.name,
+      role: requester.role,
       type: 'Delete',
     }).catch(() => {})
 

@@ -14,17 +14,25 @@ export async function getInventoryById(id: string): Promise<IInventoryItem | nul
 
 export async function createInventoryItem(data: Partial<IInventoryItem>): Promise<IInventoryItem> {
   await dbConnect()
-  if (data.code) {
+  const existingItems = await InventoryModel.find({}, { id: 1, code: 1 }).sort({ createdAt: -1 }).limit(50).lean()
+
+  // Auto-generate id
+  if (!data.id) {
+    const existingIds = existingItems.map((i) => i.id)
+    data.id = nextId('INV', existingIds)
+  }
+
+  // Auto-generate code (ITEM-01, ITEM-02, …)
+  if (!data.code) {
+    const existingCodes = existingItems.map((i) => i.code).filter(Boolean)
+    data.code = nextId('ITEM', existingCodes)
+  } else {
     const existing = await InventoryModel.findOne({ code: data.code })
     if (existing) {
       throw new Error(`Inventory item with code '${data.code}' already exists`)
     }
   }
-  if (!data.id) {
-    const existingItems = await InventoryModel.find({}, { id: 1 }).lean()
-    const existingIds = existingItems.map((i) => i.id)
-    data.id = nextId('INV', existingIds)
-  }
+
   const item = await InventoryModel.create(data)
   return item.toObject()
 }

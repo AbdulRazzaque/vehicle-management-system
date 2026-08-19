@@ -30,11 +30,12 @@ import {
 } from '@/components/ui/table'
 import { useAuth } from '@/components/auth-provider'
 import { useData } from '@/components/data-provider'
-import { RepairFormDialog } from '@/components/forms/entity-forms'
+import { RepairFormDialog } from '@/components/repairs/repair-form'
 import { currency, sumItems, type Repair } from '@/lib/data'
 
 export function RepairTable() {
-  const { can } = useAuth()
+  const { can, user } = useAuth()
+  const isAdmin = user?.role === 'Admin'
   const { repairs, deleteRepair } = useData()
   const [selected, setSelected] = useState<Repair | null>(null)
   const [editing, setEditing] = useState<Repair | null>(null)
@@ -61,13 +62,18 @@ export function RepairTable() {
       ),
     },
     { key: 'type', header: 'Type', render: (r) => r.type },
-    { key: 'workshop', header: 'Workshop', render: (r) => r.workshop },
     { key: 'date', header: 'Date', render: (r) => r.date },
-    { key: 'priority', header: 'Priority', render: (r) => <StatusBadge status={r.priority} /> },
     {
       key: 'cost',
       header: 'Cost',
-      render: (r) => <span className="font-medium">{currency(sumItems(r.items || []))}</span>,
+      render: (r) => <span className="font-medium">{currency(r.cost && r.cost > 0 ? r.cost : sumItems(r.items || []))}</span>,
+    },
+    {
+      key: 'createdBy',
+      header: 'Created By',
+      render: (r) => (
+        <span className="text-xs font-medium text-foreground">{r.createdBy || 'Daniel Okoro (Admin)'}</span>
+      ),
     },
     { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     {
@@ -82,18 +88,18 @@ export function RepairTable() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setSelected(r)}>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelected(r); }}>
               <Eye className="size-4" /> View
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!can('manage:repairs')}
-              onClick={() => setEditing(r)}
+              onClick={(e) => { e.stopPropagation(); setEditing(r); }}
             >
               <Pencil className="size-4" /> Edit
             </DropdownMenuItem>
             <DropdownMenuItem
-              disabled={!can('manage:repairs')}
-              onClick={() => setDeleting(r)}
+              disabled={!isAdmin}
+              onClick={(e) => { e.stopPropagation(); setDeleting(r); }}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="size-4" /> Delete
@@ -109,8 +115,8 @@ export function RepairTable() {
       <DataTable
         data={repairs}
         columns={columns}
-        searchKeys={['id', 'vehicleName', 'type', 'workshop']}
-        searchPlaceholder="Search repair records..."
+        searchKeys={['id', 'vehicleName', 'type', 'workshop', 'createdBy']}
+        searchPlaceholder="Search repair records or creator..."
         filter={{
           placeholder: 'All priorities',
           options: ['Low', 'Medium', 'High', 'Critical'],
@@ -130,7 +136,7 @@ export function RepairTable() {
                   <StatusBadge status={selected.priority} />
                 </DialogTitle>
                 <DialogDescription>
-                  {selected.vehicleName} · {selected.type} · {selected.workshop}
+                  {selected.vehicleName} · {selected.type} · Created by: {selected.createdBy || 'Daniel Okoro (Admin)'}
                 </DialogDescription>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">{selected.description}</p>
@@ -161,7 +167,7 @@ export function RepairTable() {
                       Total Cost
                     </TableCell>
                     <TableCell className="text-right text-base font-semibold text-primary">
-                      {currency(sumItems(selected.items || []))}
+                      {currency(selected.cost && selected.cost > 0 ? selected.cost : sumItems(selected.items || []))}
                     </TableCell>
                   </TableRow>
                 </TableFooter>

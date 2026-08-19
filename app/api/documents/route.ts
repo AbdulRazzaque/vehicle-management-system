@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllDocuments, createDocument } from '@/services/documentService'
 import { documentSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET() {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const list = await getAllDocuments()
     return NextResponse.json({ success: true, message: 'Documents retrieved', data: list }, { status: 200 })
   } catch (error: any) {
@@ -15,6 +19,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can upload documents')
+
     const body = await req.json()
     const validatedData = documentSchema.parse(body)
     const newDoc = await createDocument(validatedData)
@@ -22,8 +30,8 @@ export async function POST(req: NextRequest) {
     await createAuditLog({
       action: `Uploaded document ${newDoc.name} for ${newDoc.vehicle}`,
       entity: newDoc.id,
-      user: newDoc.uploadedBy || 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Create',
     }).catch(() => {})
 

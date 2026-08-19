@@ -23,142 +23,8 @@ export type Vehicle = {
   status: VehicleStatus
   odometer: number
   notes: string
+  createdBy?: string
 }
-
-export const vehicles: Vehicle[] = [
-  {
-    id: 'VH-1042',
-    name: 'Volvo FH16',
-    model: 'FH16 Globetrotter',
-    modelNumber: 'FH16-750',
-    plateNumber: 'KJ-8841',
-    registrationNumber: 'REG-2021-8841',
-    year: 2021,
-    color: 'Midnight Blue',
-    chassisNumber: 'YV2RT40A8MB123456',
-    engineNumber: 'D16K750-9921',
-    type: 'Heavy Truck',
-    fuelType: 'Diesel',
-    insurer: 'Allianz Fleet',
-    insuranceExpiry: '2026-02-18',
-    registrationExpiry: '2026-08-01',
-    department: 'Logistics',
-    driver: 'Marcus Reed',
-    status: 'Active',
-    odometer: 184320,
-    notes: 'Long-haul unit. Telematics installed.',
-  },
-  {
-    id: 'VH-1043',
-    name: 'Mercedes Sprinter',
-    model: 'Sprinter 315 CDI',
-    modelNumber: 'SPR-315',
-    plateNumber: 'LM-2290',
-    registrationNumber: 'REG-2022-2290',
-    year: 2022,
-    color: 'Arctic White',
-    chassisNumber: 'WDB9066331S987654',
-    engineNumber: 'OM651-44210',
-    type: 'Van',
-    fuelType: 'Diesel',
-    insurer: 'AXA Commercial',
-    insuranceExpiry: '2026-01-05',
-    registrationExpiry: '2026-05-22',
-    department: 'Field Service',
-    driver: 'Aisha Bello',
-    status: 'Maintenance',
-    odometer: 96210,
-    notes: 'Scheduled 90k service in progress.',
-  },
-  {
-    id: 'VH-1044',
-    name: 'Toyota Hilux',
-    model: 'Hilux Double Cab',
-    modelNumber: 'HLX-2.8',
-    plateNumber: 'RT-5512',
-    registrationNumber: 'REG-2020-5512',
-    year: 2020,
-    color: 'Silver Metallic',
-    chassisNumber: 'AHTFR22G306512345',
-    engineNumber: '1GD-FTV-7781',
-    type: 'Pickup',
-    fuelType: 'Diesel',
-    insurer: 'Allianz Fleet',
-    insuranceExpiry: '2025-12-30',
-    registrationExpiry: '2026-03-14',
-    department: 'Operations',
-    driver: 'Carlos Mendez',
-    status: 'Repair',
-    odometer: 142880,
-    notes: 'Front suspension repair underway.',
-  },
-  {
-    id: 'VH-1045',
-    name: 'Ford Transit',
-    model: 'Transit 350L',
-    modelNumber: 'TRN-350L',
-    plateNumber: 'BX-7730',
-    registrationNumber: 'REG-2023-7730',
-    year: 2023,
-    color: 'Race Red',
-    chassisNumber: 'WF0XXXTTGXMB45678',
-    engineNumber: 'EcoBlue-22014',
-    type: 'Van',
-    fuelType: 'Diesel',
-    insurer: 'Zurich Mobility',
-    insuranceExpiry: '2026-09-11',
-    registrationExpiry: '2026-11-02',
-    department: 'Field Service',
-    driver: 'Hannah Cole',
-    status: 'Active',
-    odometer: 41200,
-    notes: '',
-  },
-  {
-    id: 'VH-1046',
-    name: 'Tesla Model Y',
-    model: 'Model Y Long Range',
-    modelNumber: 'MY-LR',
-    plateNumber: 'EV-0091',
-    registrationNumber: 'REG-2024-0091',
-    year: 2024,
-    color: 'Pearl White',
-    chassisNumber: '7SAYGDEE1RF123456',
-    engineNumber: 'N/A (Dual Motor)',
-    type: 'SUV',
-    fuelType: 'Electric',
-    insurer: 'Zurich Mobility',
-    insuranceExpiry: '2026-07-19',
-    registrationExpiry: '2027-01-08',
-    department: 'Executive',
-    driver: 'Sofia Rossi',
-    status: 'Active',
-    odometer: 18760,
-    notes: 'EV pool vehicle.',
-  },
-  {
-    id: 'VH-1047',
-    name: 'Scania R450',
-    model: 'R450 Highline',
-    modelNumber: 'R450',
-    plateNumber: 'KJ-1199',
-    registrationNumber: 'REG-2019-1199',
-    year: 2019,
-    color: 'Graphite Grey',
-    chassisNumber: 'XLER4X20005123456',
-    engineNumber: 'DC13-450-7711',
-    type: 'Heavy Truck',
-    fuelType: 'Diesel',
-    insurer: 'AXA Commercial',
-    insuranceExpiry: '2025-11-28',
-    registrationExpiry: '2026-02-20',
-    department: 'Logistics',
-    driver: 'Ivan Petrov',
-    status: 'Inactive',
-    odometer: 312540,
-    notes: 'Awaiting decommission review.',
-  },
-]
 
 export type MaintenanceItem = {
   name: string
@@ -178,7 +44,175 @@ export type Maintenance = {
   nextDate: string
   status: 'Scheduled' | 'In Progress' | 'Completed'
   items: MaintenanceItem[]
+  cost?: number
+  createdBy?: string
 }
+
+export type Repair = {
+  id: string
+  vehicleId: string
+  vehicleName: string
+  date: string
+  type: string
+  workshop: string
+  description: string
+  priority: 'Low' | 'Medium' | 'High' | 'Critical'
+  status: 'Scheduled' | 'In Progress' | 'Completed'
+  items: { name: string; quantity: number; unitCost: number }[]
+  cost?: number
+  createdBy?: string
+}
+
+export type InventoryItem = {
+  id: string
+  code: string
+  name: string
+  category: string
+  brand: string
+  unit: string
+  purchasePrice: number
+  usagePrice: number
+  stock: number
+  minStock: number
+  supplier: string
+  location: string
+  createdBy?: string
+}
+
+// export const vehicles: Vehicle[] = [
+//   {
+//     id: 'VH-1042',
+//     name: 'Volvo FH16',
+//     model: 'FH16 Globetrotter',
+//     modelNumber: 'FH16-750',
+//     plateNumber: 'KJ-8841',
+//     registrationNumber: 'REG-2021-8841',
+//     year: 2021,
+//     color: 'Midnight Blue',
+//     chassisNumber: 'YV2RT40A8MB123456',
+//     engineNumber: 'D16K750-9921',
+//     type: 'Heavy Truck',
+//     fuelType: 'Diesel',
+//     insurer: 'Allianz Fleet',
+//     insuranceExpiry: '2026-02-18',
+//     registrationExpiry: '2026-08-01',
+//     department: 'Logistics',
+//     driver: 'Marcus Reed',
+//     status: 'Active',
+//     odometer: 184320,
+//     notes: 'Long-haul unit. Telematics installed.',
+//   },
+//   {
+//     id: 'VH-1043',
+//     name: 'Mercedes Sprinter',
+//     model: 'Sprinter 315 CDI',
+//     modelNumber: 'SPR-315',
+//     plateNumber: 'LM-2290',
+//     registrationNumber: 'REG-2022-2290',
+//     year: 2022,
+//     color: 'Arctic White',
+//     chassisNumber: 'WDB9066331S987654',
+//     engineNumber: 'OM651-44210',
+//     type: 'Van',
+//     fuelType: 'Diesel',
+//     insurer: 'AXA Commercial',
+//     insuranceExpiry: '2026-01-05',
+//     registrationExpiry: '2026-05-22',
+//     department: 'Field Service',
+//     driver: 'Aisha Bello',
+//     status: 'Maintenance',
+//     odometer: 96210,
+//     notes: 'Scheduled 90k service in progress.',
+//   },
+//   {
+//     id: 'VH-1044',
+//     name: 'Toyota Hilux',
+//     model: 'Hilux Double Cab',
+//     modelNumber: 'HLX-2.8',
+//     plateNumber: 'RT-5512',
+//     registrationNumber: 'REG-2020-5512',
+//     year: 2020,
+//     color: 'Silver Metallic',
+//     chassisNumber: 'AHTFR22G306512345',
+//     engineNumber: '1GD-FTV-7781',
+//     type: 'Pickup',
+//     fuelType: 'Diesel',
+//     insurer: 'Allianz Fleet',
+//     insuranceExpiry: '2025-12-30',
+//     registrationExpiry: '2026-03-14',
+//     department: 'Operations',
+//     driver: 'Carlos Mendez',
+//     status: 'Repair',
+//     odometer: 142880,
+//     notes: 'Front suspension repair underway.',
+//   },
+//   {
+//     id: 'VH-1045',
+//     name: 'Ford Transit',
+//     model: 'Transit 350L',
+//     modelNumber: 'TRN-350L',
+//     plateNumber: 'BX-7730',
+//     registrationNumber: 'REG-2023-7730',
+//     year: 2023,
+//     color: 'Race Red',
+//     chassisNumber: 'WF0XXXTTGXMB45678',
+//     engineNumber: 'EcoBlue-22014',
+//     type: 'Van',
+//     fuelType: 'Diesel',
+//     insurer: 'Zurich Mobility',
+//     insuranceExpiry: '2026-09-11',
+//     registrationExpiry: '2026-11-02',
+//     department: 'Field Service',
+//     driver: 'Hannah Cole',
+//     status: 'Active',
+//     odometer: 41200,
+//     notes: '',
+//   },
+//   {
+//     id: 'VH-1046',
+//     name: 'Tesla Model Y',
+//     model: 'Model Y Long Range',
+//     modelNumber: 'MY-LR',
+//     plateNumber: 'EV-0091',
+//     registrationNumber: 'REG-2024-0091',
+//     year: 2024,
+//     color: 'Pearl White',
+//     chassisNumber: '7SAYGDEE1RF123456',
+//     engineNumber: 'N/A (Dual Motor)',
+//     type: 'SUV',
+//     fuelType: 'Electric',
+//     insurer: 'Zurich Mobility',
+//     insuranceExpiry: '2026-07-19',
+//     registrationExpiry: '2027-01-08',
+//     department: 'Executive',
+//     driver: 'Sofia Rossi',
+//     status: 'Active',
+//     odometer: 18760,
+//     notes: 'EV pool vehicle.',
+//   },
+//   {
+//     id: 'VH-1047',
+//     name: 'Scania R450',
+//     model: 'R450 Highline',
+//     modelNumber: 'R450',
+//     plateNumber: 'KJ-1199',
+//     registrationNumber: 'REG-2019-1199',
+//     year: 2019,
+//     color: 'Graphite Grey',
+//     chassisNumber: 'XLER4X20005123456',
+//     engineNumber: 'DC13-450-7711',
+//     type: 'Heavy Truck',
+//     fuelType: 'Diesel',
+//     insurer: 'AXA Commercial',
+//     insuranceExpiry: '2025-11-28',
+//     registrationExpiry: '2026-02-20',
+//     department: 'Logistics',
+//     driver: 'Ivan Petrov',
+//     status: 'Inactive',
+//     odometer: 312540,
+//     notes: 'Awaiting decommission review.',
+//   },
+// ]
 
 export const maintenance: Maintenance[] = [
   {
@@ -248,19 +282,6 @@ export const maintenance: Maintenance[] = [
   },
 ]
 
-export type Repair = {
-  id: string
-  vehicleId: string
-  vehicleName: string
-  date: string
-  type: string
-  workshop: string
-  description: string
-  priority: 'Low' | 'Medium' | 'High' | 'Critical'
-  status: 'Open' | 'In Progress' | 'Completed'
-  items: { name: string; quantity: number; unitCost: number }[]
-}
-
 export const repairs: Repair[] = [
   {
     id: 'RPR-2210',
@@ -312,21 +333,6 @@ export const repairs: Repair[] = [
   },
 ]
 
-export type InventoryItem = {
-  id: string
-  code: string
-  name: string
-  category: string
-  brand: string
-  unit: string
-  purchasePrice: number
-  usagePrice: number
-  stock: number
-  minStock: number
-  supplier: string
-  location: string
-}
-
 export const inventory: InventoryItem[] = [
   { id: 'INV-001', code: 'OIL-5W30', name: 'Engine Oil 5W-30', category: 'Engine Oil', brand: 'Mobil', unit: 'Litre', purchasePrice: 7.2, usagePrice: 9.5, stock: 240, minStock: 80, supplier: 'LubriMax', location: 'A1-03' },
   { id: 'INV-002', code: 'FLT-OIL', name: 'Oil Filter', category: 'Oil Filter', brand: 'Bosch', unit: 'Piece', purchasePrice: 10, usagePrice: 14, stock: 18, minStock: 25, supplier: 'PartsHub', location: 'B2-11' },
@@ -342,22 +348,27 @@ export const inventory: InventoryItem[] = [
 
 export type Expense = {
   id: string
-  vehicleId: string
-  vehicleName: string
+  item: string
+  itemType: 'Vehicle' | 'Inventory' | 'Custom'
+  itemId?: string
+  vehicleId?: string
+  vehicleName?: string
   date: string
-  category: string
+  category?: string
   amount: number
   description: string
+  paymentMethod?: string
+  createdBy?: string
 }
 
 export const expenses: Expense[] = [
-  { id: 'EXP-5001', vehicleId: 'VH-1042', vehicleName: 'Volvo FH16', date: '2025-06-02', category: 'Fuel Cost', amount: 820, description: 'Diesel refuel — long haul' },
-  { id: 'EXP-5002', vehicleId: 'VH-1043', vehicleName: 'Mercedes Sprinter', date: '2025-06-08', category: 'Maintenance Cost', amount: 312, description: '90k service' },
-  { id: 'EXP-5003', vehicleId: 'VH-1044', vehicleName: 'Toyota Hilux', date: '2025-06-05', category: 'Repair Cost', amount: 678, description: 'Suspension repair' },
-  { id: 'EXP-5004', vehicleId: 'VH-1046', vehicleName: 'Tesla Model Y', date: '2025-06-01', category: 'Insurance Cost', amount: 540, description: 'Quarterly premium' },
-  { id: 'EXP-5005', vehicleId: 'VH-1047', vehicleName: 'Scania R450', date: '2025-05-30', category: 'Registration Cost', amount: 220, description: 'Annual registration renewal' },
-  { id: 'EXP-5006', vehicleId: 'VH-1045', vehicleName: 'Ford Transit', date: '2025-05-28', category: 'Tire Cost', amount: 700, description: 'New tire set' },
-  { id: 'EXP-5007', vehicleId: 'VH-1042', vehicleName: 'Volvo FH16', date: '2025-05-18', category: 'Repair Cost', amount: 805, description: 'Alternator replacement' },
+  { id: 'EXP-5001', item: 'Volvo FH16', itemType: 'Vehicle', itemId: 'VH-1042', vehicleId: 'VH-1042', vehicleName: 'Volvo FH16', date: '2025-06-02', category: 'Fuel Cost', amount: 820, description: 'Diesel refuel — long haul', paymentMethod: 'Corporate Card', createdBy: 'Daniel Okoro' },
+  { id: 'EXP-5002', item: 'Mercedes Sprinter', itemType: 'Vehicle', itemId: 'VH-1043', vehicleId: 'VH-1043', vehicleName: 'Mercedes Sprinter', date: '2025-06-08', category: 'Maintenance Cost', amount: 312, description: '90k service', paymentMethod: 'Bank Transfer', createdBy: 'Aisha Bello' },
+  { id: 'EXP-5003', item: 'Toyota Hilux', itemType: 'Vehicle', itemId: 'VH-1044', vehicleId: 'VH-1044', vehicleName: 'Toyota Hilux', date: '2025-06-05', category: 'Repair Cost', amount: 678, description: 'Suspension repair', paymentMethod: 'Cash', createdBy: 'Daniel Okoro' },
+  { id: 'EXP-5004', item: 'Tesla Model Y', itemType: 'Vehicle', itemId: 'VH-1046', vehicleId: 'VH-1046', vehicleName: 'Tesla Model Y', date: '2025-06-01', category: 'Insurance Cost', amount: 540, description: 'Quarterly premium', paymentMethod: 'Bank Transfer', createdBy: 'Priya Nair' },
+  { id: 'EXP-5005', item: 'Scania R450', itemType: 'Vehicle', itemId: 'VH-1047', vehicleId: 'VH-1047', vehicleName: 'Scania R450', date: '2025-05-30', category: 'Registration Cost', amount: 220, description: 'Annual registration renewal', paymentMethod: 'Credit Card', createdBy: 'Daniel Okoro' },
+  { id: 'EXP-5006', item: 'Brake Pads Set', itemType: 'Inventory', itemId: 'INV-201', date: '2025-05-28', category: 'Inventory', amount: 700, description: 'Bulk order brake pads', paymentMethod: 'Corporate Card', createdBy: 'System User' },
+  { id: 'EXP-5007', item: 'Office Supplies & Stationeries', itemType: 'Custom', date: '2025-05-18', category: 'General', amount: 155, description: 'Keyboards, paper & pens for fleet office', paymentMethod: 'Cash', createdBy: 'Aisha Bello' },
 ]
 
 export const monthlyCosts = [
@@ -432,7 +443,7 @@ export type SystemUser = {
   id: string
   name: string
   email: string
-  role: 'Admin' | 'Viewer'
+  role: 'Admin' | 'User'
   department: string
   status: 'Active' | 'Suspended'
   lastActive: string
@@ -440,9 +451,9 @@ export type SystemUser = {
 
 export const systemUsers: SystemUser[] = [
   { id: 'U-01', name: 'Daniel Okoro', email: 'daniel.okoro@fleetcore.io', role: 'Admin', department: 'Operations', status: 'Active', lastActive: '2m ago' },
-  { id: 'U-02', name: 'Priya Nair', email: 'priya.nair@fleetcore.io', role: 'Viewer', department: 'Finance', status: 'Active', lastActive: '3h ago' },
-  { id: 'U-03', name: 'Marcus Reed', email: 'marcus.reed@fleetcore.io', role: 'Viewer', department: 'Logistics', status: 'Active', lastActive: '1d ago' },
-  { id: 'U-04', name: 'Aisha Bello', email: 'aisha.bello@fleetcore.io', role: 'Viewer', department: 'Field Service', status: 'Active', lastActive: '5h ago' },
+  { id: 'U-02', name: 'Priya Nair', email: 'priya.nair@fleetcore.io', role: 'User', department: 'Finance', status: 'Active', lastActive: '3h ago' },
+  { id: 'U-03', name: 'Marcus Reed', email: 'marcus.reed@fleetcore.io', role: 'User', department: 'Logistics', status: 'Active', lastActive: '1d ago' },
+  { id: 'U-04', name: 'Aisha Bello', email: 'aisha.bello@fleetcore.io', role: 'User', department: 'Field Service', status: 'Active', lastActive: '5h ago' },
   { id: 'U-05', name: 'Tomas Vance', email: 'tomas.vance@fleetcore.io', role: 'Admin', department: 'Maintenance', status: 'Suspended', lastActive: '12d ago' },
 ]
 

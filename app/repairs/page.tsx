@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header'
 import { StatCard } from '@/components/stat-card'
 import { AdminAction } from '@/components/admin-action'
 import { RepairTable } from '@/components/repairs/repair-table'
-import { RepairFormDialog } from '@/components/forms/entity-forms'
+import { RepairFormDialog } from '@/components/repairs/repair-form'
 import { useData } from '@/components/data-provider'
 import { currency, sumItems } from '@/lib/data'
 
@@ -16,7 +16,7 @@ export default function RepairsPage() {
 
   const critical = repairs.filter((r) => r.priority === 'Critical').length
   const open = repairs.filter((r) => r.status !== 'Completed').length
-  const totalCost = repairs.reduce((a, r) => a + sumItems(r.items), 0)
+  const totalCost = repairs.reduce((a, r) => a + (r.cost && r.cost > 0 ? r.cost : sumItems(r.items)), 0)
 
   return (
     <div>

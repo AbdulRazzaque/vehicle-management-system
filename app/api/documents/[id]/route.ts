@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDocumentById, updateDocument, deleteDocument } from '@/services/documentService'
 import { documentSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const { id } = await params
     const doc = await getDocumentById(id)
     if (!doc) {
@@ -19,6 +23,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can update documents')
+
     const { id } = await params
     const body = await req.json()
     const validatedData = documentSchema.partial().parse(body)
@@ -31,8 +39,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await createAuditLog({
       action: `Updated document ${updated.name}`,
       entity: updated.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Update',
     }).catch(() => {})
 
@@ -48,6 +56,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can delete documents')
+
     const { id } = await params
     const doc = await getDocumentById(id)
     const deleted = await deleteDocument(id)
@@ -59,8 +71,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await createAuditLog({
       action: `Deleted document ${doc?.name || id}`,
       entity: id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Delete',
     }).catch(() => {})
 

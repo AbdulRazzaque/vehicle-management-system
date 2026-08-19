@@ -15,7 +15,7 @@ export async function getMaintenanceById(id: string): Promise<IMaintenance | nul
 export async function createMaintenance(data: Partial<IMaintenance>): Promise<IMaintenance> {
   await dbConnect()
   if (!data.id) {
-    const existingRecords = await MaintenanceModel.find({}, { id: 1 }).lean()
+    const existingRecords = await MaintenanceModel.find({}, { id: 1 }).sort({ createdAt: -1 }).limit(50).lean()
     const existingIds = existingRecords.map((m) => m.id)
     data.id = nextId('MNT', existingIds)
   }

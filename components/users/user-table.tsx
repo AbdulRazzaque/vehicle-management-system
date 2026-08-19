@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/components/auth-provider"
 import { useData } from "@/components/data-provider"
-import { UserFormDialog } from "@/components/forms/entity-forms"
+import { UserFormDialog } from "@/components/users/user-form"
 import type { SystemUser } from "@/lib/data"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 
@@ -33,9 +33,9 @@ const initials = (name: string) =>
     .slice(0, 2)
 
 export function UserTable() {
-  const { role } = useAuth()
+  const { user } = useAuth()
   const { systemUsers, deleteUser } = useData()
-  const isAdmin = role === "Admin"
+  const isAdmin = user?.role === "Admin"
 
   const [editing, setEditing] = useState<SystemUser | null>(null)
   const [deleting, setDeleting] = useState<SystemUser | null>(null)
@@ -94,15 +94,15 @@ export function UserTable() {
         isAdmin ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-8">
+              <Button variant="ghost" size="icon" className="size-8" onClick={(e) => e.stopPropagation()}>
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditing(u)}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditing(u); }}>
                 <Pencil className="size-4" /> Edit User
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDeleting(u)} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDeleting(u); }} className="text-destructive focus:text-destructive">
                 <Trash2 className="size-4" /> Delete User
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -121,7 +121,7 @@ export function UserTable() {
         searchKeys={["name", "email", "department"]}
         searchPlaceholder="Search users…"
         filters={[
-          { key: "role", label: "Role", options: ["Admin", "Viewer"] },
+          { key: "role", label: "Role", options: ["Admin", "User"] },
           { key: "status", label: "Status", options: ["Active", "Suspended"] },
         ]}
       />

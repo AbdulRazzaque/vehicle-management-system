@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllInventory, createInventoryItem } from '@/services/inventoryService'
 import { inventorySchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET() {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const list = await getAllInventory()
     return NextResponse.json({ success: true, message: 'Inventory items retrieved', data: list }, { status: 200 })
   } catch (error: any) {
@@ -15,6 +19,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can add inventory items')
+
     const body = await req.json()
     const validatedData = inventorySchema.parse(body)
     const newItem = await createInventoryItem(validatedData)
@@ -22,8 +30,8 @@ export async function POST(req: NextRequest) {
     await createAuditLog({
       action: `Created inventory item ${newItem.name} (${newItem.code})`,
       entity: newItem.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Create',
     }).catch(() => {})
 

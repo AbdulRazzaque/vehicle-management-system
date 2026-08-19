@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/components/auth-provider'
 import { useData } from '@/components/data-provider'
-import { ExpenseFormDialog } from '@/components/forms/entity-forms'
+import { ExpenseFormDialog } from '@/components/expenses/expense-form'
 import { currency, type Expense } from '@/lib/data'
 
 export function ExpenseTable() {
@@ -74,20 +74,20 @@ export function ExpenseTable() {
       render: (e) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8">
+            <Button variant="ghost" size="icon" className="size-8" onClick={(e) => e.stopPropagation()}>
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
               disabled={!can('manage:expenses')}
-              onClick={() => setEditing(e)}
+              onClick={(e) => { e.stopPropagation(); setEditing(e); }}
             >
               <Pencil className="size-4" /> Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!can('manage:expenses')}
-              onClick={() => setDeleting(e)}
+              onClick={(e) => { e.stopPropagation(); setDeleting(e); }}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="size-4" /> Delete

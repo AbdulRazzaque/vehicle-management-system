@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/components/auth-provider'
 import { useData } from '@/components/data-provider'
-import { InventoryFormDialog } from '@/components/forms/entity-forms'
+import { InventoryFormDialog } from '@/components/inventory/inventory-form'
 import { currency, type InventoryItem } from '@/lib/data'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -114,8 +114,15 @@ export function InventoryTable() {
     },
     {
       key: 'price',
-      header: 'Usage Price',
-      render: (i) => currency(i.usagePrice),
+      header: 'Purchase Price',
+      render: (i) => currency(i.purchasePrice),
+    },
+    {
+      key: 'createdBy',
+      header: 'Created By',
+      render: (i) => (
+        <span className="text-xs font-medium text-foreground">{i.createdBy || 'Aisha Bello (User)'}</span>
+      ),
     },
     {
       key: 'status',
@@ -138,32 +145,32 @@ export function InventoryTable() {
       render: (i) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8">
+            <Button variant="ghost" size="icon" className="size-8" onClick={(e) => e.stopPropagation()}>
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
               disabled={!can('manage:inventory')}
-              onClick={() => setStockItem({ item: i, mode: 'in' })}
+              onClick={(e) => { e.stopPropagation(); setStockItem({ item: i, mode: 'in' }); }}
             >
               <PackagePlus className="size-4" /> Stock In
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!can('manage:inventory')}
-              onClick={() => setStockItem({ item: i, mode: 'out' })}
+              onClick={(e) => { e.stopPropagation(); setStockItem({ item: i, mode: 'out' }); }}
             >
               <PackageMinus className="size-4" /> Stock Out
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!can('manage:inventory')}
-              onClick={() => setEditing(i)}
+              onClick={(e) => { e.stopPropagation(); setEditing(i); }}
             >
               <Pencil className="size-4" /> Edit Item
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!can('manage:inventory')}
-              onClick={() => setDeleting(i)}
+              onClick={(e) => { e.stopPropagation(); setDeleting(i); }}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="size-4" /> Delete
@@ -179,8 +186,8 @@ export function InventoryTable() {
       <DataTable
         data={inventory}
         columns={columns}
-        searchKeys={['name', 'code', 'brand', 'supplier']}
-        searchPlaceholder="Search items, codes, suppliers..."
+        searchKeys={['name', 'code', 'brand', 'supplier', 'createdBy']}
+        searchPlaceholder="Search items, codes, suppliers, creator..."
         filter={{
           placeholder: 'All categories',
           options: categories,

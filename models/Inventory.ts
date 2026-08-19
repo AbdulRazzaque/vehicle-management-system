@@ -13,6 +13,7 @@ export interface IInventoryItem extends Document {
   minStock: number
   supplier: string
   location: string
+  createdBy?: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -22,20 +23,25 @@ const InventorySchema = new Schema<IInventoryItem>(
     id: { type: String, required: true, unique: true, index: true },
     code: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
-    category: { type: String, required: true },
-    brand: { type: String, required: true },
+    category: { type: String, default: '' },
+    brand: { type: String, default: '' },
     unit: { type: String, required: true },
     purchasePrice: { type: Number, required: true, default: 0 },
-    usagePrice: { type: Number, required: true, default: 0 },
+    usagePrice: { type: Number, default: 0 },
     stock: { type: Number, required: true, default: 0 },
-    minStock: { type: Number, required: true, default: 0 },
-    supplier: { type: String, required: true },
-    location: { type: String, required: true },
+    minStock: { type: Number, default: 0 },
+    supplier: { type: String, default: '' },
+    location: { type: String, default: '' },
+    createdBy: { type: String, default: 'Aisha Bello (User)' },
   },
   {
     timestamps: true,
   }
 )
 
+if (mongoose.models.Inventory) {
+  delete (mongoose.models as any).Inventory
+}
+
 export const InventoryModel: Model<IInventoryItem> =
-  mongoose.models.Inventory || mongoose.model<IInventoryItem>('Inventory', InventorySchema)
+  mongoose.model<IInventoryItem>('Inventory', InventorySchema)

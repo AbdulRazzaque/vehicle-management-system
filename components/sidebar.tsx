@@ -2,13 +2,21 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Gauge } from 'lucide-react'
+import { Gauge, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { navItems, navGroups } from '@/lib/nav'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useAuth } from '@/components/auth-provider'
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
+  const isAdmin = user?.role === 'Admin'
+
+  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin)
+  const visibleGroups = navGroups.filter((group) =>
+    visibleItems.some((item) => item.group === group)
+  )
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
@@ -24,12 +32,12 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="flex flex-col gap-5">
-          {navGroups.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group} className="flex flex-col gap-1">
               <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {group}
               </p>
-              {navItems
+              {visibleItems
                 .filter((item) => item.group === group)
                 .map((item) => {
                   const active =
@@ -58,14 +66,15 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </ScrollArea>
 
-      {/* <div className="border-t border-sidebar-border p-4">
-        <div className="rounded-lg bg-sidebar-accent px-3 py-2.5">
-          <p className="text-xs font-medium text-sidebar-accent-foreground">
-            All systems operational
-          </p>
-          <p className="text-[11px] text-muted-foreground">v2.4.0 · Enterprise</p>
-        </div>
-      </div> */}
+      <div className="border-t border-sidebar-border p-3">
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          <LogOut className="size-4 shrink-0" />
+          Sign out
+        </button>
+      </div>
     </div>
   )
 }

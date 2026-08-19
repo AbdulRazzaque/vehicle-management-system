@@ -121,8 +121,8 @@ export default function VehicleDetailsPage({ params }: { params: Promise<{ id: s
     const vMaint = maintenance.filter((m) => m.vehicleId === id)
     const vRepairs = repairs.filter((r) => r.vehicleId === id)
 
-    const totalMaintCost = vMaint.reduce((sum, m) => sum + sumItems(m.items), 0)
-    const totalRepairCost = vRepairs.reduce((sum, r) => sum + sumItems(r.items), 0)
+    const totalMaintCost = vMaint.reduce((sum, m) => sum + (m.cost && m.cost > 0 ? m.cost : sumItems(m.items)), 0)
+    const totalRepairCost = vRepairs.reduce((sum, r) => sum + (r.cost && r.cost > 0 ? r.cost : sumItems(r.items)), 0)
 
     const maintDates = vMaint.map((m) => new Date(m.date).getTime())
     const repairDates = vRepairs.map((r) => new Date(r.date).getTime())
@@ -154,7 +154,7 @@ export default function VehicleDetailsPage({ params }: { params: Promise<{ id: s
         recordType: m.type,
         provider: m.vendor,
         description: m.description,
-        cost: sumItems(m.items),
+        cost: m.cost && m.cost > 0 ? m.cost : sumItems(m.items),
         status: m.status,
         original: m
       }))
@@ -168,7 +168,7 @@ export default function VehicleDetailsPage({ params }: { params: Promise<{ id: s
         recordType: r.type,
         provider: r.workshop,
         description: r.description,
-        cost: sumItems(r.items),
+        cost: r.cost && r.cost > 0 ? r.cost : sumItems(r.items),
         status: r.status,
         original: r
       }))

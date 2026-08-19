@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header'
 import { StatCard } from '@/components/stat-card'
 import { AdminAction } from '@/components/admin-action'
 import { InventoryTable } from '@/components/inventory/inventory-table'
-import { InventoryFormDialog } from '@/components/forms/entity-forms'
+import { InventoryFormDialog } from '@/components/inventory/inventory-form'
 import { useData } from '@/components/data-provider'
 import { currency } from '@/lib/data'
 

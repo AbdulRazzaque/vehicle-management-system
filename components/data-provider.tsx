@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { toast } from 'sonner'
+import { useAuth } from '@/components/auth-provider'
 import type {
   Vehicle,
   Maintenance,
@@ -59,7 +60,13 @@ const DataContext = createContext<DataContextValue | null>(null)
 
 async function safeFetchJson(url: string) {
   try {
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      },
+    })
     if (!res.ok) {
       return { success: false, error: `HTTP ${res.status}: ${res.statusText}` }
     }
@@ -93,6 +100,7 @@ async function safeFetchMutation(url: string, method: string, body?: any) {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { user, isLoading: isAuthLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [maintenance, setMaintenance] = useState<Maintenance[]>([])
@@ -106,8 +114,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const fetchAllData = useCallback(async () => {
     try {
       setIsLoading(true)
-      // Call seed route first to populate default mock data if DB is fresh
-      await fetch('/api/seed', { method: 'POST' }).catch(() => {})
 
       const endpoints = [
         { key: 'vehicles', url: '/api/vehicles', setter: setVehicles },
@@ -140,8 +146,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    fetchAllData()
-  }, [fetchAllData])
+    if (isAuthLoading) {
+      setIsLoading(true)
+      return
+    }
+
+    if (user) {
+      fetchAllData()
+    } else {
+      setVehicles([])
+      setMaintenance([])
+      setRepairs([])
+      setInventory([])
+      setExpenses([])
+      setSystemUsers([])
+      setDocuments([])
+      setAuditLogs([])
+      setIsLoading(false)
+    }
+  }, [user, isAuthLoading, fetchAllData])
 
   // Vehicle CRUD
   const addVehicle = useCallback(async (vehicle: Omit<Vehicle, 'id'>) => {

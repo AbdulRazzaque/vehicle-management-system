@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllVehicles, createVehicle } from '@/services/vehicleService'
 import { vehicleSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET() {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const vehicles = await getAllVehicles()
     return NextResponse.json({ success: true, message: 'Vehicles retrieved successfully', data: vehicles }, { status: 200 })
   } catch (error: any) {
@@ -15,6 +19,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const body = await req.json()
     const validatedData = vehicleSchema.parse(body)
     const newVehicle = await createVehicle(validatedData)
@@ -22,8 +29,8 @@ export async function POST(req: NextRequest) {
     await createAuditLog({
       action: `Created vehicle ${newVehicle.name} (${newVehicle.plateNumber})`,
       entity: newVehicle.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Create',
     }).catch(() => {})
 

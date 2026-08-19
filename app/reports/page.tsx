@@ -118,11 +118,11 @@ export default function ReportsPage() {
 
       // Calculate costs in period
       const maintCost = activityType === 'all' || activityType === 'Maintenance'
-        ? vM.reduce((sum, m) => sum + sumItems(m.items), 0)
+        ? vM.reduce((sum, m) => sum + (m.cost && m.cost > 0 ? m.cost : sumItems(m.items)), 0)
         : 0
 
       const repairCost = activityType === 'all' || activityType === 'Repair'
-        ? vR.reduce((sum, r) => sum + sumItems(r.items), 0)
+        ? vR.reduce((sum, r) => sum + (r.cost && r.cost > 0 ? r.cost : sumItems(r.items)), 0)
         : 0
 
       const cost = maintCost + repairCost
@@ -138,7 +138,7 @@ export default function ReportsPage() {
             recordType: m.type,
             provider: m.vendor,
             description: m.description,
-            cost: sumItems(m.items),
+            cost: m.cost && m.cost > 0 ? m.cost : sumItems(m.items),
             status: m.status,
           })
         })
@@ -152,7 +152,7 @@ export default function ReportsPage() {
             recordType: r.type,
             provider: r.workshop,
             description: r.description,
-            cost: sumItems(r.items),
+            cost: r.cost && r.cost > 0 ? r.cost : sumItems(r.items),
             status: r.status,
           })
         })

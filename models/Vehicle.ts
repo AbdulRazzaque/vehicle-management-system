@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose'
 import type { VehicleStatus } from '@/lib/data'
 
-export interface IVehicle extends Document {
+export interface IVehicle {
   id: string
   name: string
   model: string
@@ -22,6 +22,7 @@ export interface IVehicle extends Document {
   status: VehicleStatus
   odometer: number
   notes: string
+  createdBy?: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -44,7 +45,7 @@ const VehicleSchema = new Schema<IVehicle>(
     insuranceExpiry: { type: String, default: '' },
     registrationExpiry: { type: String, default: '' },
     department: { type: String, required: true },
-    driver: { type: String, required: true },
+    driver: { type: String, default: '' },
     status: {
       type: String,
       enum: ['Active', 'Maintenance', 'Repair', 'Inactive'],
@@ -52,11 +53,16 @@ const VehicleSchema = new Schema<IVehicle>(
     },
     odometer: { type: Number, default: 0 },
     notes: { type: String, default: '' },
+    createdBy: { type: String, default: 'Daniel Okoro (Admin)' },
   },
   {
     timestamps: true,
   }
 )
+
+if (mongoose.models.Vehicle) {
+  delete (mongoose.models as any).Vehicle
+}
 
 export const VehicleModel: Model<IVehicle> =
   mongoose.models.Vehicle || mongoose.model<IVehicle>('Vehicle', VehicleSchema)

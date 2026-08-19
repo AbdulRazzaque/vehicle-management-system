@@ -89,7 +89,7 @@ export function VehicleHistoryReport() {
         recordType: m.type,
         provider: m.vendor,
         description: m.description,
-        cost: sumItems(m.items),
+        cost: m.cost && m.cost > 0 ? m.cost : sumItems(m.items),
         status: m.status,
         original: m
       }))
@@ -103,7 +103,7 @@ export function VehicleHistoryReport() {
         recordType: r.type,
         provider: r.workshop,
         description: r.description,
-        cost: sumItems(r.items),
+        cost: r.cost && r.cost > 0 ? r.cost : sumItems(r.items),
         status: r.status,
         original: r
       }))

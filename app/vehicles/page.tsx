@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header'
 import { StatCard } from '@/components/stat-card'
 import { AdminAction } from '@/components/admin-action'
 import { VehicleTable } from '@/components/vehicles/vehicle-table'
-import { VehicleFormDialog } from '@/components/forms/entity-forms'
+import { VehicleFormDialog } from '@/components/vehicles/vehicle-form'
 import { useData } from '@/components/data-provider'
 
 export default function VehiclesPage() {

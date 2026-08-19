@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getVehicleById, updateVehicle, deleteVehicle } from '@/services/vehicleService'
 import { vehicleSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const { id } = await params
     const vehicle = await getVehicleById(id)
     if (!vehicle) {
@@ -19,6 +23,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const { id } = await params
     const body = await req.json()
     const validatedData = vehicleSchema.partial().parse(body)
@@ -31,8 +38,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await createAuditLog({
       action: `Updated vehicle ${updated.name} (${updated.plateNumber})`,
       entity: updated.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Update',
     }).catch(() => {})
 
@@ -51,6 +58,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can delete vehicles')
+
     const { id } = await params
     const vehicle = await getVehicleById(id)
     const deleted = await deleteVehicle(id)
@@ -62,8 +73,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await createAuditLog({
       action: `Deleted vehicle ${vehicle?.name || id}`,
       entity: id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Delete',
     }).catch(() => {})
 

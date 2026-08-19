@@ -15,7 +15,7 @@ export async function getExpenseById(id: string): Promise<IExpense | null> {
 export async function createExpense(data: Partial<IExpense>): Promise<IExpense> {
   await dbConnect()
   if (!data.id) {
-    const existingExpenses = await ExpenseModel.find({}, { id: 1 }).lean()
+    const existingExpenses = await ExpenseModel.find({}, { id: 1 }).sort({ createdAt: -1 }).limit(50).lean()
     const existingIds = existingExpenses.map((e) => e.id)
     data.id = nextId('EXP', existingIds)
   }

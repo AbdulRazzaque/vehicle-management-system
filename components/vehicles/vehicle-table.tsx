@@ -23,7 +23,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/components/auth-provider'
 import { useData } from '@/components/data-provider'
-import { VehicleFormDialog } from '@/components/forms/entity-forms'
+import { VehicleFormDialog } from '@/components/vehicles/vehicle-form'
 import type { Vehicle } from '@/lib/data'
 
 function DetailRow({ label, value }: { label: string; value: string | number }) {
@@ -38,7 +38,8 @@ function DetailRow({ label, value }: { label: string; value: string | number }) 
 }
 
 export function VehicleTable() {
-  const { can } = useAuth()
+  const { can, user } = useAuth()
+  const isAdmin = user?.role === 'Admin'
   const { vehicles, deleteVehicle } = useData()
   const [selected, setSelected] = useState<Vehicle | null>(null)
   const [editing, setEditing] = useState<Vehicle | null>(null)
@@ -73,11 +74,14 @@ export function VehicleTable() {
     },
     { key: 'type', header: 'Type', render: (v) => v.type },
     { key: 'department', header: 'Department', render: (v) => v.department },
-    { key: 'driver', header: 'Driver', render: (v) => v.driver },
     {
-      key: 'odometer',
-      header: 'Odometer',
-      render: (v) => `${(v.odometer || 0).toLocaleString()} km`,
+      key: 'createdBy',
+      header: 'Created By',
+      render: (v) => (
+        <span className="text-xs font-medium text-foreground">
+          {v.createdBy || 'Daniel Okoro (Admin)'}
+        </span>
+      ),
     },
     { key: 'status', header: 'Status', render: (v) => <StatusBadge status={v.status} /> },
     {
@@ -97,18 +101,18 @@ export function VehicleTable() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setSelected(v)}>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelected(v); }}>
               <Eye className="size-4" /> View details
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!can('manage:vehicles')}
-              onClick={() => setEditing(v)}
+              onClick={(e) => { e.stopPropagation(); setEditing(v); }}
             >
               <Pencil className="size-4" /> Edit
             </DropdownMenuItem>
             <DropdownMenuItem
-              disabled={!can('manage:vehicles')}
-              onClick={() => setDeleting(v)}
+              disabled={!isAdmin}
+              onClick={(e) => { e.stopPropagation(); setDeleting(v); }}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="size-4" /> Delete
@@ -124,8 +128,8 @@ export function VehicleTable() {
       <DataTable
         data={vehicles}
         columns={columns}
-        searchKeys={['name', 'plateNumber', 'driver', 'id', 'department']}
-        searchPlaceholder="Search by name, plate, driver..."
+        searchKeys={['name', 'plateNumber', 'driver', 'id', 'department', 'createdBy']}
+        searchPlaceholder="Search by name, plate, driver, creator..."
         filter={{
           placeholder: 'All statuses',
           options: ['Active', 'Maintenance', 'Repair', 'Inactive'],
@@ -172,11 +176,8 @@ export function VehicleTable() {
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <DetailRow label="Department" value={selected.department} />
-                <DetailRow label="Driver" value={selected.driver} />
-                <DetailRow label="Odometer" value={`${(selected.odometer || 0).toLocaleString()} km`} />
-                <DetailRow label="Insurer" value={selected.insurer} />
-                <DetailRow label="Insurance Expiry" value={selected.insuranceExpiry} />
                 <DetailRow label="Reg. Expiry" value={selected.registrationExpiry} />
+                <DetailRow label="Created By" value={selected.createdBy || 'Daniel Okoro (Admin)'} />
               </div>
 
               {selected.notes && (

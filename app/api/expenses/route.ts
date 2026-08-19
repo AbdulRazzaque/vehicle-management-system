@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllExpenses, createExpense } from '@/services/expenseService'
 import { expenseSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET() {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const list = await getAllExpenses()
     return NextResponse.json({ success: true, message: 'Expenses retrieved', data: list }, { status: 200 })
   } catch (error: any) {
@@ -15,15 +19,19 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can log expenses')
+
     const body = await req.json()
     const validatedData = expenseSchema.parse(body)
     const newExpense = await createExpense(validatedData)
 
     await createAuditLog({
-      action: `Logged expense ${newExpense.id} ($${newExpense.amount}) for ${newExpense.vehicleName}`,
+      action: `Logged expense ${newExpense.id} ($${newExpense.amount}) for ${newExpense.item}`,
       entity: newExpense.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Create',
     }).catch(() => {})
 

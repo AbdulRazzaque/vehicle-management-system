@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header'
 import { StatCard } from '@/components/stat-card'
 import { AdminAction } from '@/components/admin-action'
 import { MaintenanceTable } from '@/components/maintenance/maintenance-table'
-import { MaintenanceFormDialog } from '@/components/forms/entity-forms'
+import { MaintenanceFormDialog } from '@/components/maintenance/maintenance-form'
 import { useData } from '@/components/data-provider'
 import { currency, sumItems } from '@/lib/data'
 
@@ -16,7 +16,7 @@ export default function MaintenancePage() {
 
   const inProgress = maintenance.filter((m) => m.status === 'In Progress').length
   const scheduled = maintenance.filter((m) => m.status === 'Scheduled').length
-  const totalCost = maintenance.reduce((a, m) => a + sumItems(m.items), 0)
+  const totalCost = maintenance.reduce((a, m) => a + (m.cost && m.cost > 0 ? m.cost : sumItems(m.items)), 0)
 
   return (
     <div>

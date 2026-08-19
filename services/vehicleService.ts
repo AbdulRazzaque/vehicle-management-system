@@ -21,7 +21,7 @@ export async function createVehicle(data: Partial<IVehicle>): Promise<IVehicle> 
     }
   }
   if (!data.id) {
-    const existingVehicles = await VehicleModel.find({}, { id: 1 }).lean()
+    const existingVehicles = await VehicleModel.find({}, { id: 1 }).sort({ createdAt: -1 }).limit(50).lean()
     const existingIds = existingVehicles.map((v) => v.id)
     data.id = nextId('VH', existingIds)
   }

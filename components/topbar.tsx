@@ -2,6 +2,7 @@
 
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   Bell,
   Menu,
@@ -10,6 +11,7 @@ import {
   Sun,
   LogOut,
   Settings,
+  User,
   UserCog,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,6 +22,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -29,15 +32,21 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sidebar } from '@/components/sidebar'
 import { useAuth } from '@/components/auth-provider'
-import { notifications } from '@/lib/data'
+import { useData } from '@/components/data-provider'
+import { getLiveNotifications } from '@/lib/notifications-utils'
 
 export function Topbar() {
   const { theme, setTheme } = useTheme()
-  const { user, setRole } = useAuth()
+  const { user, logout } = useAuth()
+  const { vehicles, inventory, repairs, maintenance } = useData()
   const [mounted, setMounted] = useState(false)
-  const unread = notifications.filter((n) => !n.read).length
+
+  const liveNotifications = getLiveNotifications(vehicles, inventory, repairs, maintenance)
+  const unread = liveNotifications.filter((n) => !n.read).length
 
   useEffect(() => setMounted(true), [])
+
+  if (!user) return null
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border glass px-4 md:px-6">
@@ -65,10 +74,17 @@ export function Topbar() {
       <div className="ml-auto flex items-center gap-1.5">
         <Badge
           variant="outline"
-          className="hidden gap-1.5 border-success/40 text-success sm:flex"
+          className="hidden gap-1.5 border-success/40 text-success sm:flex animate-pulse"
         >
           <span className="size-1.5 rounded-full bg-success" />
           Live
+        </Badge>
+
+        <Badge
+          variant={user.role === 'Admin' ? 'default' : 'secondary'}
+          className="capitalize font-semibold text-[10px]"
+        >
+          {user.role}
         </Badge>
 
         <Button
@@ -99,39 +115,34 @@ export function Topbar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-9 gap-2 pl-1.5 pr-2">
               <Avatar className="size-7">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                   {user.initials}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden text-left leading-tight sm:block">
                 <p className="text-xs font-medium">{user.name}</p>
-                <p className="text-[10px] text-muted-foreground">{user.role}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">{user.role}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="font-normal">
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="font-normal">
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground">
-              <UserCog className="size-3.5" /> Preview role
-            </DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              value={user.role}
-              onValueChange={(v) => setRole(v as 'Admin' | 'Viewer')}
-            >
-              <DropdownMenuRadioItem value="Admin">Admin</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="Viewer">
-                Viewer
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="flex w-full items-center gap-2 cursor-pointer">
+                <User className="size-4" /> My Profile
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings className="size-4" /> Settings
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive cursor-pointer">
               <LogOut className="size-4" /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

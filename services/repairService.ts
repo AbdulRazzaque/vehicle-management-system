@@ -15,7 +15,7 @@ export async function getRepairById(id: string): Promise<IRepair | null> {
 export async function createRepair(data: Partial<IRepair>): Promise<IRepair> {
   await dbConnect()
   if (!data.id) {
-    const existingRecords = await RepairModel.find({}, { id: 1 }).lean()
+    const existingRecords = await RepairModel.find({}, { id: 1 }).sort({ createdAt: -1 }).limit(50).lean()
     const existingIds = existingRecords.map((r) => r.id)
     data.id = nextId('RPR', existingIds)
   }

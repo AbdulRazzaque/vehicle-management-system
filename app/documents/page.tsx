@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { PageHeader } from '@/components/page-header'
 import { DataTable, type Column } from '@/components/data-table'
 import { AdminAction } from '@/components/admin-action'
-import { DocumentFormDialog } from '@/components/forms/entity-forms'
+import { DocumentFormDialog } from '@/components/documents/document-form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {

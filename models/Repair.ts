@@ -15,8 +15,10 @@ export interface IRepair extends Document {
   workshop: string
   description: string
   priority: 'Low' | 'Medium' | 'High' | 'Critical'
-  status: 'Open' | 'In Progress' | 'Completed'
+  status: 'Scheduled' | 'In Progress' | 'Completed'
   items: IRepairItem[]
+  cost?: number
+  createdBy?: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -38,7 +40,7 @@ const RepairSchema = new Schema<IRepair>(
     date: { type: String, required: true },
     type: { type: String, required: true },
     workshop: { type: String, required: true },
-    description: { type: String, required: true },
+    description: { type: String, default: '' },
     priority: {
       type: String,
       enum: ['Low', 'Medium', 'High', 'Critical'],
@@ -46,15 +48,21 @@ const RepairSchema = new Schema<IRepair>(
     },
     status: {
       type: String,
-      enum: ['Open', 'In Progress', 'Completed'],
-      default: 'Open',
+      enum: ['Scheduled', 'In Progress', 'Completed'],
+      default: 'Scheduled',
     },
     items: { type: [RepairItemSchema], default: [] },
+    cost: { type: Number, default: 0 },
+    createdBy: { type: String, default: 'Daniel Okoro (Admin)' },
   },
   {
     timestamps: true,
   }
 )
 
+if (mongoose.models.Repair) {
+  delete (mongoose.models as any).Repair
+}
+
 export const RepairModel: Model<IRepair> =
-  mongoose.models.Repair || mongoose.model<IRepair>('Repair', RepairSchema)
+  mongoose.model<IRepair>('Repair', RepairSchema)

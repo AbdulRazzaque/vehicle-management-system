@@ -12,14 +12,10 @@ export const vehicleSchema = z.object({
   engineNumber: z.string().optional().default(''),
   type: z.string().min(1, 'Vehicle Type is required'),
   fuelType: z.string().min(1, 'Fuel Type is required'),
-  insurer: z.string().optional().default(''),
-  insuranceExpiry: z.string().optional().default(''),
   registrationExpiry: z.string().optional().default(''),
   department: z.string().min(1, 'Department is required'),
-  driver: z.string().min(1, 'Driver is required'),
-  status: z.enum(['Active', 'Maintenance', 'Repair', 'Inactive']).default('Active'),
-  odometer: z.number().nonnegative().default(0),
   notes: z.string().optional().default(''),
+  createdBy: z.string().optional().default('Daniel Okoro (Admin)'),
 })
 
 export const maintenanceItemSchema = z.object({
@@ -33,12 +29,14 @@ export const maintenanceSchema = z.object({
   vehicleName: z.string().min(1, 'Vehicle Name is required'),
   date: z.string().min(1, 'Date is required'),
   type: z.string().min(1, 'Maintenance Type is required'),
-  vendor: z.string().min(1, 'Vendor is required'),
-  odometer: z.number().nonnegative().default(0),
-  description: z.string().min(1, 'Description is required'),
+  vendor: z.string().optional().default(''),
+  odometer: z.number().nonnegative().optional().default(0),
+  description: z.string().optional().default(''),
   nextDate: z.string().optional().default(''),
   status: z.enum(['Scheduled', 'In Progress', 'Completed']).default('Scheduled'),
   items: z.array(maintenanceItemSchema).optional().default([]),
+  cost: z.number().nonnegative().optional().default(0),
+  createdBy: z.string().optional().default('Daniel Okoro (Admin)'),
 })
 
 export const repairItemSchema = z.object({
@@ -53,42 +51,51 @@ export const repairSchema = z.object({
   date: z.string().min(1, 'Date is required'),
   type: z.string().min(1, 'Repair Type is required'),
   workshop: z.string().min(1, 'Workshop is required'),
-  description: z.string().min(1, 'Description is required'),
+  description: z.string().optional().default(''),
   priority: z.enum(['Low', 'Medium', 'High', 'Critical']).default('Medium'),
-  status: z.enum(['Open', 'In Progress', 'Completed']).default('Open'),
+  status: z.enum(['Scheduled', 'In Progress', 'Completed']).default('Scheduled'),
   items: z.array(repairItemSchema).optional().default([]),
+  cost: z.number().nonnegative().optional().default(0),
+  createdBy: z.string().optional().default('Daniel Okoro (Admin)'),
 })
 
 export const inventorySchema = z.object({
-  code: z.string().min(1, 'Item Code is required'),
+  code: z.string().optional().default(''),
   name: z.string().min(1, 'Item Name is required'),
-  category: z.string().min(1, 'Category is required'),
-  brand: z.string().min(1, 'Brand is required'),
+  category: z.string().optional().default(''),
+  brand: z.string().optional().default(''),
   unit: z.string().min(1, 'Unit is required'),
   purchasePrice: z.number().nonnegative('Purchase Price cannot be negative'),
-  usagePrice: z.number().nonnegative('Usage Price cannot be negative'),
+  usagePrice: z.number().nonnegative().optional().default(0),
   stock: z.number().int().nonnegative('Stock cannot be negative'),
-  minStock: z.number().int().nonnegative('Minimum Stock cannot be negative'),
-  supplier: z.string().min(1, 'Supplier is required'),
-  location: z.string().min(1, 'Location is required'),
+  minStock: z.number().int().nonnegative().optional().default(0),
+  supplier: z.string().optional().default(''),
+  location: z.string().optional().default(''),
+  createdBy: z.string().optional().default('Aisha Bello (User)'),
 })
 
 export const expenseSchema = z.object({
-  vehicleId: z.string().min(1, 'Vehicle ID is required'),
-  vehicleName: z.string().min(1, 'Vehicle Name is required'),
+  item: z.string().min(1, 'Item is required'),
+  itemType: z.enum(['Vehicle', 'Inventory', 'Custom']).default('Custom'),
+  itemId: z.string().optional().default(''),
+  vehicleId: z.string().optional().default(''),
+  vehicleName: z.string().optional().default(''),
   date: z.string().min(1, 'Date is required'),
-  category: z.string().min(1, 'Category is required'),
+  category: z.string().optional().default(''),
   amount: z.number().positive('Amount must be greater than 0'),
-  description: z.string().min(1, 'Description is required'),
+  description: z.string().optional().default(''),
+  paymentMethod: z.string().optional().default('Cash'),
+  createdBy: z.string().optional().default('Admin'),
 })
 
 export const userSchema = z.object({
   name: z.string().min(1, 'Full Name is required'),
   email: z.string().email('Invalid email address'),
-  role: z.enum(['Admin', 'Viewer']).default('Viewer'),
+  role: z.enum(['Admin', 'User']).default('User'),
   department: z.string().min(1, 'Department is required'),
   status: z.enum(['Active', 'Suspended']).default('Active'),
   lastActive: z.string().optional().default('Just now'),
+  password: z.string().optional().default('password123'),
 })
 
 export const documentSchema = z.object({

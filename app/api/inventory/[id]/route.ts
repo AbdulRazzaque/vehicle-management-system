@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getInventoryById, updateInventoryItem, deleteInventoryItem } from '@/services/inventoryService'
 import { inventorySchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const { id } = await params
     const item = await getInventoryById(id)
     if (!item) {
@@ -19,6 +23,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can update inventory items')
+
     const { id } = await params
     const body = await req.json()
     const validatedData = inventorySchema.partial().parse(body)
@@ -31,8 +39,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await createAuditLog({
       action: `Updated inventory item ${updated.name} (${updated.code})`,
       entity: updated.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Update',
     }).catch(() => {})
 
@@ -51,6 +59,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can delete inventory items')
+
     const { id } = await params
     const item = await getInventoryById(id)
     const deleted = await deleteInventoryItem(id)
@@ -62,8 +74,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await createAuditLog({
       action: `Deleted inventory item ${item?.name || id}`,
       entity: id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Delete',
     }).catch(() => {})
 

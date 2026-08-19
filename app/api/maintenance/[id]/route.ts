@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMaintenanceById, updateMaintenance, deleteMaintenance } from '@/services/maintenanceService'
 import { maintenanceSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
+import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { ZodError } from 'zod'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const { id } = await params
     const record = await getMaintenanceById(id)
     if (!record) {
@@ -19,8 +23,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+
     const { id } = await params
     const body = await req.json()
+
+    if (user.role === 'User') {
+      const existing = await getMaintenanceById(id)
+      if (!existing) {
+        return NextResponse.json({ success: false, error: 'Maintenance record not found' }, { status: 404 })
+      }
+
+      if (body.status === 'Completed') {
+        return forbiddenResponse('Users are not authorized to complete maintenance records')
+      }
+
+      if (body.cost !== undefined && Number(body.cost) !== (existing.cost ?? 0)) {
+        return forbiddenResponse('Users are not authorized to update the cost value')
+      }
+    }
+
     const validatedData = maintenanceSchema.partial().parse(body)
     const updated = await updateMaintenance(id, validatedData)
 
@@ -31,8 +54,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await createAuditLog({
       action: `Updated maintenance record ${updated.id} (${updated.vehicleName})`,
       entity: updated.id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Update',
     }).catch(() => {})
 
@@ -48,6 +71,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) return unauthorizedResponse()
+    if (user.role !== 'Admin') return forbiddenResponse('Only Admins can delete maintenance records')
+
     const { id } = await params
     const deleted = await deleteMaintenance(id)
 
@@ -58,8 +85,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await createAuditLog({
       action: `Deleted maintenance record ${id}`,
       entity: id,
-      user: 'Admin',
-      role: 'Admin',
+      user: user.name,
+      role: user.role,
       type: 'Delete',
     }).catch(() => {})
 

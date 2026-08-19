@@ -10,7 +10,7 @@ export async function getAllAuditLogs(): Promise<IAuditLog[]> {
 export async function createAuditLog(data: Partial<IAuditLog>): Promise<IAuditLog> {
   await dbConnect()
   if (!data.id) {
-    const existingLogs = await AuditLogModel.find({}, { id: 1 }).lean()
+    const existingLogs = await AuditLogModel.find({}, { id: 1 }).sort({ createdAt: -1 }).limit(50).lean()
     const existingIds = existingLogs.map((l) => l.id)
     data.id = nextId('L', existingIds)
   }
