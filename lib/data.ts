@@ -429,6 +429,7 @@ export type Notification = {
   severity: 'info' | 'warning' | 'critical'
   time: string
   read: boolean
+  vehicleId?: string
 }
 
 export const notifications: Notification[] = [

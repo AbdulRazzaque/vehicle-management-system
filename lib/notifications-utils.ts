@@ -1,4 +1,5 @@
 import type { Vehicle, InventoryItem, Repair, Maintenance, Notification } from '@/lib/data'
+import { getTwoMonthsPriorDate } from '@/lib/date-utils'
 
 export function getLiveNotifications(
   vehicles: Vehicle[],
@@ -18,6 +19,7 @@ export function getLiveNotifications(
   // 1. Critical Repairs
   repairs.forEach((r) => {
     if (r.priority === 'Critical' && r.status !== 'Completed') {
+      const veh = vehicles.find((v) => v.id === r.vehicleId || v.name === r.vehicleName)
       list.push({
         id: `r-${r.id}`,
         category: 'Critical Repair',
@@ -26,6 +28,7 @@ export function getLiveNotifications(
         severity: 'critical',
         time: r.date || 'Just now',
         read: false,
+        vehicleId: veh?.id || r.vehicleId,
       })
     }
   })
@@ -58,6 +61,7 @@ export function getLiveNotifications(
           severity: 'warning',
           time: 'Expiry coming up',
           read: false,
+          vehicleId: v.id,
         })
       } else if (exp <= today) {
         list.push({
@@ -68,32 +72,27 @@ export function getLiveNotifications(
           severity: 'critical',
           time: 'Expired',
           read: false,
+          vehicleId: v.id,
         })
       }
     }
 
-    // 4. Vehicles Registration Expiry
+    // 4. Vehicles Registration Expiry (2 calendar months prior)
     if (v.registrationExpiry) {
-      const exp = new Date(v.registrationExpiry)
-      if (exp > today && exp <= thirtyDaysFromNow) {
+      const reminderDateStr = getTwoMonthsPriorDate(v.registrationExpiry)
+      const todayStr = new Date().toISOString().split('T')[0]
+
+      if (reminderDateStr && todayStr >= reminderDateStr) {
+        const vehicleName = v.name ? `${v.name} (${v.plateNumber || v.registrationNumber || v.id})` : (v.plateNumber || v.registrationNumber || v.id)
         list.push({
-          id: `reg-${v.id}`,
+          id: `reg-reminder-${v.id}-${v.registrationExpiry}`,
           category: 'Registration Expiry',
-          title: 'Registration renewal due',
-          detail: `${v.name} (${v.plateNumber}) registration expires on ${v.registrationExpiry}.`,
+          title: 'Registration Expiry Reminder',
+          detail: `The registration for ${vehicleName} will expire on ${v.registrationExpiry}. Please renew the registration before the expiry date.`,
           severity: 'info',
-          time: 'Expiry coming up',
+          time: 'Renewal due soon',
           read: false,
-        })
-      } else if (exp <= today) {
-        list.push({
-          id: `reg-exp-${v.id}`,
-          category: 'Registration Expiry',
-          title: 'Registration EXPIRED',
-          detail: `${v.name} (${v.plateNumber}) registration expired on ${v.registrationExpiry}!`,
-          severity: 'critical',
-          time: 'Expired',
-          read: false,
+          vehicleId: v.id,
         })
       }
     }
@@ -102,6 +101,7 @@ export function getLiveNotifications(
   // 5. Maintenance Due
   maintenance.forEach((m) => {
     if (m.status === 'Scheduled') {
+      const veh = vehicles.find((v) => v.id === m.vehicleId || v.name === m.vehicleName)
       list.push({
         id: `mnt-${m.id}`,
         category: 'Maintenance Due',
@@ -110,6 +110,7 @@ export function getLiveNotifications(
         severity: 'info',
         time: m.date || 'Scheduled',
         read: false,
+        vehicleId: veh?.id || m.vehicleId,
       })
     }
   })

@@ -3,6 +3,7 @@ import { getVehicleById, updateVehicle, deleteVehicle } from '@/services/vehicle
 import { vehicleSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
 import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
+import { dismissVehicleRegistrationNotifications } from '@/lib/notifications-backend'
 import { ZodError } from 'zod'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -34,6 +35,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!updated) {
       return NextResponse.json({ success: false, error: 'Vehicle not found' }, { status: 404 })
     }
+
+    dismissVehicleRegistrationNotifications(id).catch(() => {})
 
     await createAuditLog({
       action: `Updated vehicle ${updated.name} (${updated.plateNumber})`,

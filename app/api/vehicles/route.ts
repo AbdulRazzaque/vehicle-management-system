@@ -3,12 +3,15 @@ import { getAllVehicles, createVehicle } from '@/services/vehicleService'
 import { vehicleSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
 import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
+import { checkAndGenerateRegistrationExpiryNotifications } from '@/lib/notifications-backend'
 import { ZodError } from 'zod'
 
 export async function GET() {
   try {
     const user = await getAuthenticatedUser()
     if (!user) return unauthorizedResponse()
+
+    checkAndGenerateRegistrationExpiryNotifications().catch(() => {})
 
     const vehicles = await getAllVehicles()
     return NextResponse.json({ success: true, message: 'Vehicles retrieved successfully', data: vehicles }, { status: 200 })

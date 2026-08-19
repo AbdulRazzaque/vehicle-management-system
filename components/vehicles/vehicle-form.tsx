@@ -18,6 +18,7 @@ function emptyVehicleForm() {
   return {
     name: '',
     model: '',
+    modelNumber: '',
     plateNumber: '',
     registrationNumber: '',
     year: new Date().getFullYear(),
@@ -51,6 +52,7 @@ export function VehicleFormDialog({ open, onOpenChange, initialData }: FormProps
     const payload = {
       name: form.name.trim(),
       model: form.model.trim(),
+      modelNumber: initialData?.modelNumber || '',
       plateNumber: form.plateNumber.trim(),
       registrationNumber: form.registrationNumber.trim(),
       year: Number(form.year) || new Date().getFullYear(),
