@@ -128,10 +128,10 @@ export function VehicleFormDialog({ open, onOpenChange, initialData }: FormProps
         <FormField label="Engine Number" htmlFor="vehicle-engine">
           <Input id="vehicle-engine" value={form.engineNumber} onChange={(e) => setForm({ ...form, engineNumber: e.target.value })} disabled={isSubmitting} />
         </FormField>
-        <FormField label="Registration No." htmlFor="vehicle-reg">
+        <FormField label="Registration No." htmlFor="vehicle-reg" >
           <Input id="vehicle-reg" value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} disabled={isSubmitting} />
         </FormField>
-        <FormField label="Registration Expiry" htmlFor="vehicle-reg-exp">
+        <FormField label="Registration Expiry" htmlFor="vehicle-reg-exp" required error={errors.registrationExpiry}>
           <Input id="vehicle-reg-exp" type="date" value={form.registrationExpiry} onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })} disabled={isSubmitting} />
         </FormField>
         <FormField label="Vehicle Type" htmlFor="vehicle-type" required error={errors.type}>
