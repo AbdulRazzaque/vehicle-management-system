@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
 import { getAllUsers, createUser } from '@/services/userService'
-import { userSchema } from '@/lib/validation/schemas'
+import { createUserSchema } from '@/lib/validation/schemas'
 import { createAuditLog } from '@/services/auditService'
 import { getAuthenticatedUser, unauthorizedResponse, forbiddenResponse } from '@/lib/auth-backend'
 import { UserModel } from '@/models/User'
@@ -24,19 +25,20 @@ export async function POST(req: NextRequest) {
   try {
     await dbConnect()
     const userCount = await UserModel.countDocuments()
+    const requester = await getAuthenticatedUser()
 
-    let requesterName = 'Registration System'
-    let requesterRole = 'User'
-
-    try {
-      const user = await getAuthenticatedUser()
-      if (user) {
-        requesterName = user.name
-        requesterRole = user.role
+    // Requester authorization check (except for initial system bootstrapping when count === 0)
+    if (userCount > 0) {
+      if (!requester) {
+        return unauthorizedResponse()
       }
-    } catch {
-      // Ignore authentication lookup errors for public registrations
+      if (requester.role !== 'Admin') {
+        return forbiddenResponse('Only Admins can create users')
+      }
     }
+
+    const requesterName = requester?.name || 'Registration System'
+    const requesterRole = requester?.role || 'User'
 
     const body = await req.json()
 
@@ -45,28 +47,50 @@ export async function POST(req: NextRequest) {
       body.role = 'Admin'
     }
 
-    const validatedData = userSchema.parse(body)
-    const newUser = await createUser(validatedData)
+    const validatedData = createUserSchema.parse(body)
+
+    // Check duplicate username
+    const existing = await UserModel.findOne({ username: validatedData.username.toLowerCase() })
+    if (existing) {
+      return NextResponse.json({ success: false, error: 'Username already exists.' }, { status: 409 })
+    }
+
+    // Securely hash password using bcrypt
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10)
+    
+    const userPayload = {
+      ...validatedData,
+      username: validatedData.username.toLowerCase(),
+      password: hashedPassword,
+    }
+    delete (userPayload as any).confirmPassword
+
+    const newUser = await createUser(userPayload)
 
     await createAuditLog({
       action: userCount === 0
-        ? `Bootstrapped first Admin user ${newUser.name} (${newUser.email})`
-        : `Invited user ${newUser.name} (${newUser.email})`,
+        ? `Bootstrapped first Admin user ${newUser.name} (@${newUser.username})`
+        : `Created user ${newUser.name} (@${newUser.username})`,
       entity: newUser.id,
       user: requesterName,
       role: requesterRole,
       type: 'Create',
     }).catch(() => {})
 
-    return NextResponse.json({ success: true, message: 'User invited successfully', data: newUser }, { status: 201 })
+    // Omit hashed password from response data
+    const safeUser = { ...newUser }
+    delete safeUser.password
+
+    return NextResponse.json({ success: true, message: 'User created successfully', data: safeUser }, { status: 201 })
   } catch (error: any) {
     if (error instanceof ZodError) {
-      const message = error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ')
+      const message = error.issues.map((i) => i.message).join(', ')
       return NextResponse.json({ success: false, error: message }, { status: 400 })
     }
     if (error.code === 11000 || error.message?.includes('already exists')) {
-      return NextResponse.json({ success: false, error: error.message || 'User email already exists.' }, { status: 409 })
+      return NextResponse.json({ success: false, error: 'Username already exists.' }, { status: 409 })
     }
-    return NextResponse.json({ success: false, error: error.message || 'Failed to invite user' }, { status: 500 })
+    return NextResponse.json({ success: false, error: error.message || 'Failed to create user' }, { status: 500 })
   }
 }
+

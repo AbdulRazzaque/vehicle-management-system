@@ -14,7 +14,8 @@ export type Role = 'Admin' | 'User'
 export type CurrentUser = {
   id: string
   name: string
-  email: string
+  username?: string
+  email?: string
   role: Role
   initials: string
 }
@@ -22,7 +23,7 @@ export type CurrentUser = {
 type AuthContextValue = {
   user: CurrentUser | null
   isLoading: boolean
-  login: (email: string, password: string, rememberMe: boolean) => Promise<boolean>
+  login: (username: string, password: string, rememberMe: boolean) => Promise<boolean>
   logout: () => Promise<void>
   can: (permission: Permission) => boolean
 }
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser({
             id: u.id,
             name: u.name,
+            username: u.username || u.email,
             email: u.email,
             role: u.role,
             initials: u.name
@@ -93,12 +95,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchSession()
   }, [pathname])
 
-  const login = async (email: string, password: string, rememberMe: boolean) => {
+  const login = async (username: string, password: string, rememberMe: boolean) => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, rememberMe }),
+        body: JSON.stringify({ username, password, rememberMe }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -107,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser({
             id: u.id,
             name: u.name,
+            username: u.username || u.email,
             email: u.email,
             role: u.role,
             initials: u.name

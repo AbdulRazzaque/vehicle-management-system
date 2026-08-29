@@ -14,10 +14,10 @@ export async function getUserById(id: string): Promise<ISystemUser | null> {
 
 export async function createUser(data: Partial<ISystemUser>): Promise<ISystemUser> {
   await dbConnect()
-  if (data.email) {
-    const existing = await UserModel.findOne({ email: data.email })
+  if (data.username) {
+    const existing = await UserModel.findOne({ username: data.username.toLowerCase() })
     if (existing) {
-      throw new Error(`User with email '${data.email}' already exists`)
+      throw new Error(`Username '${data.username}' already exists.`)
     }
   }
   if (!data.id) {
@@ -31,10 +31,10 @@ export async function createUser(data: Partial<ISystemUser>): Promise<ISystemUse
 
 export async function updateUser(id: string, data: Partial<ISystemUser>): Promise<ISystemUser | null> {
   await dbConnect()
-  if (data.email) {
-    const existing = await UserModel.findOne({ email: data.email, id: { $ne: id } })
+  if (data.username) {
+    const existing = await UserModel.findOne({ username: data.username.toLowerCase(), id: { $ne: id } })
     if (existing) {
-      throw new Error(`User with email '${data.email}' already exists`)
+      throw new Error(`Username '${data.username}' already exists.`)
     }
   }
   const updated = await UserModel.findOneAndUpdate({ id }, { $set: data }, { new: true }).lean()

@@ -6,18 +6,27 @@ import { dbConnect } from './db/connect'
 export async function getAuthenticatedUser() {
   try {
     const cookieStore = await cookies()
-    const email = cookieStore.get('session')?.value
-    if (!email) {
+    const identifier = cookieStore.get('session')?.value
+    if (!identifier) {
       return null
     }
     await dbConnect()
-    const user = await UserModel.findOne({ email }).lean()
+    const lowerIdentifier = identifier.toLowerCase()
+    const user = await UserModel.findOne({
+      $or: [
+        { username: identifier },
+        { username: lowerIdentifier },
+        { email: identifier },
+        { email: lowerIdentifier },
+      ],
+    }).lean()
     if (!user) {
       return null
     }
     return {
       id: user.id,
       name: user.name,
+      username: user.username || user.email || user.name.toLowerCase().replace(/\s+/g, ''),
       email: user.email,
       role: user.role,
     }

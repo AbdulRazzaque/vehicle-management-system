@@ -129,7 +129,7 @@ export function Topbar() {
             <DropdownMenuGroup>
               <DropdownMenuLabel className="font-normal">
                 <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+                <p className="text-xs text-muted-foreground">@{user.username || user.email}</p>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

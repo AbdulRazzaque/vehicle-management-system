@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     await createAuditLog({
-      action: `Updated user ${updated.name} (${updated.email})`,
+      action: `Updated user ${updated.name} (@${updated.username || updated.email || updated.id})`,
       entity: updated.id,
       user: requester.name,
       role: requester.role,
@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ success: false, error: message }, { status: 400 })
     }
     if (error.code === 11000 || error.message?.includes('already exists')) {
-      return NextResponse.json({ success: false, error: error.message || 'User email already exists.' }, { status: 409 })
+      return NextResponse.json({ success: false, error: 'Username already exists.' }, { status: 409 })
     }
     return NextResponse.json({ success: false, error: error.message || 'Failed to update user' }, { status: 500 })
   }

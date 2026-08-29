@@ -443,7 +443,8 @@ export const notifications: Notification[] = [
 export type SystemUser = {
   id: string
   name: string
-  email: string
+  username: string
+  email?: string
   role: 'Admin' | 'User'
   department: string
   status: 'Active' | 'Suspended'
@@ -451,11 +452,11 @@ export type SystemUser = {
 }
 
 export const systemUsers: SystemUser[] = [
-  { id: 'U-01', name: 'Daniel Okoro', email: 'daniel.okoro@fleetcore.io', role: 'Admin', department: 'Operations', status: 'Active', lastActive: '2m ago' },
-  { id: 'U-02', name: 'Priya Nair', email: 'priya.nair@fleetcore.io', role: 'User', department: 'Finance', status: 'Active', lastActive: '3h ago' },
-  { id: 'U-03', name: 'Marcus Reed', email: 'marcus.reed@fleetcore.io', role: 'User', department: 'Logistics', status: 'Active', lastActive: '1d ago' },
-  { id: 'U-04', name: 'Aisha Bello', email: 'aisha.bello@fleetcore.io', role: 'User', department: 'Field Service', status: 'Active', lastActive: '5h ago' },
-  { id: 'U-05', name: 'Tomas Vance', email: 'tomas.vance@fleetcore.io', role: 'Admin', department: 'Maintenance', status: 'Suspended', lastActive: '12d ago' },
+  { id: 'U-01', name: 'Daniel Okoro', username: 'daniel.okoro', email: 'daniel.okoro@fleetcore.io', role: 'Admin', department: 'Operations', status: 'Active', lastActive: '2m ago' },
+  { id: 'U-02', name: 'Priya Nair', username: 'priya.nair', email: 'priya.nair@fleetcore.io', role: 'User', department: 'Finance', status: 'Active', lastActive: '3h ago' },
+  { id: 'U-03', name: 'Marcus Reed', username: 'marcus.reed', email: 'marcus.reed@fleetcore.io', role: 'User', department: 'Logistics', status: 'Active', lastActive: '1d ago' },
+  { id: 'U-04', name: 'Aisha Bello', username: 'aisha.bello', email: 'aisha.bello@fleetcore.io', role: 'User', department: 'Field Service', status: 'Active', lastActive: '5h ago' },
+  { id: 'U-05', name: 'Tomas Vance', username: 'tomas.vance', email: 'tomas.vance@fleetcore.io', role: 'Admin', department: 'Maintenance', status: 'Suspended', lastActive: '12d ago' },
 ]
 
 export type FleetDocument = {

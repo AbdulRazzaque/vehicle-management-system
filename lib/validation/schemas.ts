@@ -90,13 +90,31 @@ export const expenseSchema = z.object({
 
 export const userSchema = z.object({
   name: z.string().min(1, 'Full Name is required'),
-  email: z.string().email('Invalid email address'),
+  username: z.string().min(1, 'Username is required'),
+  email: z.string().optional(),
   role: z.enum(['Admin', 'User']).default('User'),
   department: z.string().min(1, 'Department is required'),
   status: z.enum(['Active', 'Suspended']).default('Active'),
   lastActive: z.string().optional().default('Just now'),
-  password: z.string().optional().default('password123'),
+  password: z.string().optional(),
 })
+
+export const createUserSchema = userSchema
+  .extend({
+    username: z.string().min(1, 'Username is required'),
+    password: z
+      .string()
+      .min(1, 'Password is required')
+      .min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z
+      .string()
+      .min(1, 'Confirm Password is required'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Password and Confirm Password do not match',
+    path: ['confirmPassword'],
+  })
+
 
 export const documentSchema = z.object({
   name: z.string().min(1, 'Document Name is required'),

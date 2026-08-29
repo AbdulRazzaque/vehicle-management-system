@@ -85,7 +85,7 @@ export default function ProfilePage() {
 
               <div className="space-y-1 mt-2">
                 <h2 className="text-xl font-bold tracking-tight">{user.name}</h2>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <p className="text-sm text-muted-foreground">@{user.username || user.email}</p>
               </div>
 
               <div className="mt-4 flex flex-col items-center gap-2">
@@ -118,7 +118,7 @@ export default function ProfilePage() {
             <CardContent className="space-y-2 p-0 text-xs text-muted-foreground leading-relaxed">
               <p className="font-semibold text-foreground">Organization Managed Profile</p>
               <p>
-                Your personal details (Name, Email, and Access Role) are managed by the Fleet Administration.
+                Your personal details (Name, Username, and Access Role) are managed by the Fleet Administration.
               </p>
               <p>
                 To request modifications to your display name or update your permissions, please contact your administrator.
@@ -152,16 +152,16 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Email */}
+                {/* Username */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="displayEmail" className="text-xs font-semibold text-muted-foreground">
-                    Email address
+                  <Label htmlFor="displayUsername" className="text-xs font-semibold text-muted-foreground">
+                    Username
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                    <User className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground/70" />
                     <Input
-                      id="displayEmail"
-                      value={user.email}
+                      id="displayUsername"
+                      value={user.username || user.email}
                       disabled
                       className="pl-9 bg-muted/30 border-border/40 text-foreground cursor-not-allowed"
                     />

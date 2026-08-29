@@ -356,10 +356,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     try {
       const data = await safeFetchMutation('/api/users', 'POST', user)
       setSystemUsers((prev) => [data.data, ...prev])
-      toast.success(data.message || 'User invited')
+      toast.success(data.message || 'User created')
       return data.data
     } catch (err: any) {
-      toast.error(err.message || 'Error inviting user')
+      toast.error(err.message || 'Error creating user')
       return null
     }
   }, [])

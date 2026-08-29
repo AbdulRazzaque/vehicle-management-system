@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, Lock, Mail, Gauge, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Lock, User, Gauge, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
@@ -11,24 +11,20 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 
 export default function LoginPage() {
   const { login } = useAuth()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [emailError, setEmailError] = useState('')
+  const [usernameError, setUsernameError] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const validateEmail = (val: string) => {
+  const validateUsername = (val: string) => {
     if (!val.trim()) {
-      setEmailError('Email address is required')
+      setUsernameError('Username is required')
       return false
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())) {
-      setEmailError('Please enter a valid email address')
-      return false
-    }
-    setEmailError('')
+    setUsernameError('')
     return true
   }
 
@@ -45,10 +41,10 @@ export default function LoginPage() {
     return true
   }
 
-  const handleEmailChange = (val: string) => {
-    setEmail(val)
-    if (emailError) {
-      setEmailError('')
+  const handleUsernameChange = (val: string) => {
+    setUsername(val)
+    if (usernameError) {
+      setUsernameError('')
     }
   }
 
@@ -62,20 +58,20 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const isEmailValid = validateEmail(email)
+    const isUsernameValid = validateUsername(username)
     const isPasswordValid = validatePassword(password)
 
-    if (!isEmailValid || !isPasswordValid) {
+    if (!isUsernameValid || !isPasswordValid) {
       return
     }
 
     setIsSubmitting(true)
     try {
-      const success = await login(email.trim(), password, rememberMe)
+      const success = await login(username.trim(), password, rememberMe)
       if (success) {
         toast.success('Successfully logged in')
       } else {
-        toast.error('Invalid credentials. Check your email or password.')
+        toast.error('Invalid credentials. Check your username or password.')
       }
     } catch (err: any) {
       toast.error(err.message || 'Connection error. Please try again.')
@@ -147,34 +143,34 @@ export default function LoginPage() {
             <Card className="border border-border/40 shadow-xl backdrop-blur-sm bg-card/60 rounded-2xl">
               <form onSubmit={handleSubmit} noValidate>
                 <CardContent className="space-y-4 pt-6">
-                  {/* Email address field */}
+                  {/* Username field */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                      Email address
+                    <Label htmlFor="username" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                      Username
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <User className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
-                        id="email"
-                        type="email"
-                        placeholder="name@company.com"
-                        value={email}
-                        onChange={(e) => handleEmailChange(e.target.value)}
-                        onBlur={() => validateEmail(email)}
-                        className={`pl-9 bg-background/50 border transition-all duration-200 focus-visible:ring-2 ${emailError
+                        id="username"
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => handleUsernameChange(e.target.value)}
+                        onBlur={() => validateUsername(username)}
+                        className={`pl-9 bg-background/50 border transition-all duration-200 focus-visible:ring-2 ${usernameError
                           ? 'border-destructive focus-visible:ring-destructive/30'
                           : 'border-border/60 focus-visible:ring-primary/30'
                           }`}
                         disabled={isSubmitting}
-                        autoComplete="email"
+                        autoComplete="username"
                       />
                     </div>
                     {/* Prevent Layout Shift Error Slot */}
                     <div className="h-5 overflow-hidden">
-                      {emailError && (
+                      {usernameError && (
                         <p className="text-[11px] text-destructive flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                           <AlertCircle className="size-3" />
-                          {emailError}
+                          {usernameError}
                         </p>
                       )}
                     </div>

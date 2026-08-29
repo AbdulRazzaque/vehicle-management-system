@@ -3,7 +3,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 export interface ISystemUser extends Document {
   id: string
   name: string
-  email: string
+  username: string
+  email?: string
   role: 'Admin' | 'User'
   department: string
   status: 'Active' | 'Suspended'
@@ -17,7 +18,8 @@ const UserSchema = new Schema<ISystemUser>(
   {
     id: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true },
+    username: { type: String, required: true, unique: true, index: true },
+    email: { type: String, required: false, sparse: true },
     role: { type: String, enum: ['Admin', 'User'], default: 'User' },
     department: { type: String, required: true },
     status: { type: String, enum: ['Active', 'Suspended'], default: 'Active' },

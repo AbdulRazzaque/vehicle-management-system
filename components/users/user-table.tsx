@@ -61,7 +61,7 @@ export function UserTable() {
           </Avatar>
           <div>
             <div className="font-medium">{u.name}</div>
-            <div className="text-xs text-muted-foreground">{u.email}</div>
+            <div className="text-xs text-muted-foreground">@{u.username || u.email}</div>
           </div>
         </div>
       ),
@@ -118,7 +118,7 @@ export function UserTable() {
       <DataTable
         data={systemUsers}
         columns={columns}
-        searchKeys={["name", "email", "department"]}
+        searchKeys={["name", "username", "department"]}
         searchPlaceholder="Search users…"
         filters={[
           { key: "role", label: "Role", options: ["Admin", "User"] },

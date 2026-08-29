@@ -26,7 +26,7 @@ export default function UsersPage() {
           <AdminAction
             permission="manage:users"
             icon={UserPlus}
-            label="Invite User"
+            label="Create User"
             onAction={() => setFormOpen(true)}
           />
         }
