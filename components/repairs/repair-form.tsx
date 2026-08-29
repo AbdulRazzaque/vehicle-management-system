@@ -10,6 +10,7 @@ import { useAuth } from '@/components/auth-provider'
 import { todayIso } from '@/lib/form-utils'
 import type { Repair } from '@/lib/data'
 import { repairSchema } from '@/lib/validation/schemas'
+import { VehicleSelect } from '@/components/forms/vehicle-select'
 import {
   FormProps,
   useFormReset,
@@ -110,12 +111,14 @@ export function RepairFormDialog({ open, onOpenChange, initialData }: FormProps<
     >
       <FormGrid cols={2}>
         <FormField label="Vehicle" htmlFor="repair-vehicle" required error={errors.vehicleId} className="sm:col-span-2">
-          <SelectField
+          <VehicleSelect
             id="repair-vehicle"
             value={form.vehicleId}
             onValueChange={(v) => setForm({ ...form, vehicleId: v })}
+            vehicles={vehicles}
             placeholder="Select vehicle"
-            options={vehicles.map((v) => ({ value: v.id, label: v.name }))}
+            disabled={isSubmitting}
+            error={errors.vehicleId}
           />
         </FormField>
         <FormField label="Date" htmlFor="repair-date" required error={errors.date}>
