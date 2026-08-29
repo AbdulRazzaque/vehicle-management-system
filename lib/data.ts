@@ -513,3 +513,71 @@ export const sumItems = (
     (acc, i) => acc + i.quantity * (i.unitPrice ?? i.unitCost ?? 0),
     0,
   )
+
+export function getFleetStats(
+  vehicles: Vehicle[] = [],
+  maintenance: Maintenance[] = [],
+  repairs: Repair[] = [],
+) {
+  const maintenanceVehicleIds = new Set<string>()
+  maintenance.forEach((m) => {
+    if (m.status === 'In Progress') {
+      const v = vehicles.find(
+        (veh) => veh.id === m.vehicleId || (m.vehicleName && veh.name.toLowerCase() === m.vehicleName.toLowerCase())
+      )
+      if (v) {
+        maintenanceVehicleIds.add(v.id)
+      } else if (m.vehicleId) {
+        maintenanceVehicleIds.add(m.vehicleId)
+      } else if (m.vehicleName) {
+        maintenanceVehicleIds.add(m.vehicleName)
+      }
+    }
+  })
+  vehicles.forEach((v) => {
+    if (v.status === 'Maintenance') {
+      maintenanceVehicleIds.add(v.id)
+    }
+  })
+
+  const repairVehicleIds = new Set<string>()
+  repairs.forEach((r) => {
+    if (r.status === 'In Progress') {
+      const v = vehicles.find(
+        (veh) => veh.id === r.vehicleId || (r.vehicleName && veh.name.toLowerCase() === r.vehicleName.toLowerCase())
+      )
+      if (v) {
+        repairVehicleIds.add(v.id)
+      } else if (r.vehicleId) {
+        repairVehicleIds.add(r.vehicleId)
+      } else if (r.vehicleName) {
+        repairVehicleIds.add(r.vehicleName)
+      }
+    }
+  })
+  vehicles.forEach((v) => {
+    if (v.status === 'Repair') {
+      repairVehicleIds.add(v.id)
+    }
+  })
+
+  const total = vehicles.length
+  const inMaintenance = maintenanceVehicleIds.size
+  const inRepair = repairVehicleIds.size
+
+  const active = vehicles.filter((v) => {
+    if (v.status === 'Inactive') return false
+    if (v.status === 'Maintenance' || v.status === 'Repair') return false
+    if (maintenanceVehicleIds.has(v.id) || (v.name && maintenanceVehicleIds.has(v.name))) return false
+    if (repairVehicleIds.has(v.id) || (v.name && repairVehicleIds.has(v.name))) return false
+    return true
+  }).length
+
+  return {
+    total,
+    active,
+    inMaintenance,
+    inRepair,
+  }
+}
+

@@ -23,16 +23,13 @@ import {
   InventoryTrendChart,
 } from '@/components/dashboard/charts'
 import { useData } from '@/components/data-provider'
-import { currency } from '@/lib/data'
+import { currency, getFleetStats } from '@/lib/data'
 import { toast } from 'sonner'
 
 export default function DashboardPage() {
-  const { vehicles, inventory, expenses } = useData()
+  const { vehicles, maintenance, repairs, inventory, expenses } = useData()
 
-  const total = vehicles.length
-  const active = vehicles.filter((v) => v.status === 'Active').length
-  const inMaintenance = vehicles.filter((v) => v.status === 'Maintenance').length
-  const inRepair = vehicles.filter((v) => v.status === 'Repair').length
+  const { total, active, inMaintenance, inRepair } = getFleetStats(vehicles, maintenance, repairs)
   const lowStock = inventory.filter((i) => i.stock < i.minStock).length
   const monthly = expenses.reduce((a, e) => a + (e.amount || 0), 0)
 
