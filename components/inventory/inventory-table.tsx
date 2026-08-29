@@ -21,6 +21,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useAuth } from '@/components/auth-provider'
 import { useData } from '@/components/data-provider'
 import { InventoryFormDialog } from '@/components/inventory/inventory-form'
@@ -30,13 +37,17 @@ import { toast } from 'sonner'
 
 export function InventoryTable() {
   const { can } = useAuth()
-  const { inventory, updateInventoryItem, deleteInventoryItem } = useData()
+  const { inventory, systemUsers, updateInventoryItem, deleteInventoryItem } = useData()
   const categories = Array.from(new Set(inventory.map((i) => i.category)))
 
   const [editing, setEditing] = useState<InventoryItem | null>(null)
   const [deleting, setDeleting] = useState<InventoryItem | null>(null)
   const [stockItem, setStockItem] = useState<{ item: InventoryItem; mode: 'in' | 'out' } | null>(null)
   const [stockQty, setStockQty] = useState('1')
+  const [takenByOption, setTakenByOption] = useState('')
+  const [customPersonName, setCustomPersonName] = useState('')
+  const [qtyError, setQtyError] = useState('')
+  const [personError, setPersonError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleDelete = async () => {
@@ -49,10 +60,34 @@ export function InventoryTable() {
 
   const handleStockUpdate = async () => {
     if (!stockItem) return
+    setQtyError('')
+    setPersonError('')
+
     const qty = Number(stockQty)
-    if (!qty || qty <= 0) {
-      toast.error('Enter a valid positive quantity')
+    if (!stockQty.trim() || isNaN(qty)) {
+      setQtyError('Quantity is required')
       return
+    }
+    if (qty <= 0) {
+      setQtyError('Quantity must be greater than 0')
+      return
+    }
+    if (stockItem.mode === 'out' && qty > stockItem.item.stock) {
+      setQtyError(`Quantity cannot exceed available stock (${stockItem.item.stock})`)
+      return
+    }
+
+    let finalTakenBy = ''
+    if (stockItem.mode === 'out') {
+      if (takenByOption === 'other') {
+        if (!customPersonName.trim()) {
+          setPersonError("Please enter the person's name")
+          return
+        }
+        finalTakenBy = customPersonName.trim()
+      } else if (takenByOption && takenByOption !== 'none') {
+        finalTakenBy = takenByOption
+      }
     }
 
     setIsSubmitting(true)
@@ -61,14 +96,21 @@ export function InventoryTable() {
         ? stockItem.item.stock + qty
         : Math.max(0, stockItem.item.stock - qty)
 
-    const updated = await updateInventoryItem(stockItem.item.id, { stock: newStock })
+    const updated = await updateInventoryItem(stockItem.item.id, {
+      stock: newStock,
+      takenBy: finalTakenBy,
+    } as any)
     setIsSubmitting(false)
     if (updated) {
-      toast.success(
-        `Stock ${stockItem.mode === 'in' ? 'added' : 'deducted'}: ${qty} ${stockItem.item.unit}`
-      )
+      const actionText = stockItem.mode === 'in' ? 'added' : 'deducted'
+      const takenText = finalTakenBy ? ` (Taken by: ${finalTakenBy})` : ''
+      toast.success(`Stock ${actionText}: ${qty} ${stockItem.item.unit}${takenText}`)
       setStockItem(null)
       setStockQty('1')
+      setTakenByOption('')
+      setCustomPersonName('')
+      setQtyError('')
+      setPersonError('')
     }
   }
 
@@ -203,32 +245,126 @@ export function InventoryTable() {
       />
 
       {/* STOCK IN / OUT DIALOG */}
-      <Dialog open={!!stockItem} onOpenChange={(o) => !o && setStockItem(null)}>
+      <Dialog
+        open={!!stockItem}
+        onOpenChange={(o) => {
+          if (!o) {
+            setStockItem(null)
+            setStockQty('1')
+            setTakenByOption('')
+            setCustomPersonName('')
+            setQtyError('')
+            setPersonError('')
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {stockItem?.mode === 'in' ? 'Stock In' : 'Stock Out'} - {stockItem?.item.name}
+              {stockItem?.mode === 'in' ? 'Stock In' : 'Stock Out'} – {stockItem?.item.name}
             </DialogTitle>
             <DialogDescription>
               Current Stock: {stockItem?.item.stock} {stockItem?.item.unit}. Adjust quantity below.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-2">
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Quantity</label>
-            <Input
-              type="number"
-              min="1"
-              value={stockQty}
-              onChange={(e) => setStockQty(e.target.value)}
-              disabled={isSubmitting}
-            />
+
+          <div className="space-y-4 py-2">
+            {/* Quantity * */}
+            <div className="space-y-1.5">
+              <label htmlFor="stock-qty" className="text-xs font-semibold text-foreground flex items-center gap-1">
+                Quantity <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="stock-qty"
+                type="number"
+                min="1"
+                max={stockItem?.mode === 'out' ? stockItem?.item.stock : undefined}
+                value={stockQty}
+                onChange={(e) => {
+                  setStockQty(e.target.value)
+                  setQtyError('')
+                }}
+                disabled={isSubmitting}
+                className={cn(qtyError && 'border-destructive focus-visible:ring-destructive/30')}
+              />
+              {qtyError && <p className="text-xs text-destructive">{qtyError}</p>}
+            </div>
+
+            {/* Taken By (Optional for Stock Out) */}
+            {stockItem?.mode === 'out' && (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label htmlFor="stock-taken-by" className="text-xs font-semibold text-foreground">
+                    Taken By
+                  </label>
+                  <Select
+                    value={takenByOption}
+                    onValueChange={(val) => {
+                      setTakenByOption(val || '')
+                      setPersonError('')
+                    }}
+                  >
+                    <SelectTrigger id="stock-taken-by" className="w-full">
+                      <SelectValue placeholder="Select person (Optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Select person (Optional)</SelectItem>
+                      {systemUsers.map((u) => (
+                        <SelectItem key={u.id} value={u.name}>
+                          {u.name} ({u.role} - {u.department})
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Additional text field if "Other" is selected */}
+                {takenByOption === 'other' && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <label htmlFor="stock-person-name" className="text-xs font-semibold text-foreground flex items-center gap-1">
+                      Person Name <span className="text-destructive">*</span>
+                    </label>
+                    <Input
+                      id="stock-person-name"
+                      type="text"
+                      placeholder="Enter person's full name"
+                      value={customPersonName}
+                      onChange={(e) => {
+                        setCustomPersonName(e.target.value)
+                        setPersonError('')
+                      }}
+                      disabled={isSubmitting}
+                      className={cn(personError && 'border-destructive focus-visible:ring-destructive/30')}
+                    />
+                    {personError && <p className="text-xs text-destructive">{personError}</p>}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setStockItem(null)} disabled={isSubmitting}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setStockItem(null)
+                setStockQty('1')
+                setTakenByOption('')
+                setCustomPersonName('')
+                setQtyError('')
+                setPersonError('')
+              }}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button onClick={handleStockUpdate} disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : stockItem?.mode === 'in' ? 'Add Stock' : 'Deduct Stock'}
+              {isSubmitting
+                ? 'Updating...'
+                : stockItem?.mode === 'in'
+                ? 'Add Stock'
+                : 'Deduct Stock'}
             </Button>
           </DialogFooter>
         </DialogContent>

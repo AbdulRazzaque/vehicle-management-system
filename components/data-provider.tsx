@@ -290,7 +290,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const updateInventoryItem = useCallback(async (id: string, item: Partial<InventoryItem>) => {
+  const updateInventoryItem = useCallback(async (id: string, item: Partial<InventoryItem> & { takenBy?: string }) => {
     try {
       const data = await safeFetchMutation(`/api/inventory/${id}`, 'PUT', item)
       setInventory((prev) => prev.map((i) => (i.id === id ? data.data : i)))

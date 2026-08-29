@@ -29,15 +29,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { id } = await params
     const body = await req.json()
-    const validatedData = inventorySchema.partial().parse(body)
+    const { takenBy, ...inventoryData } = body
+    const validatedData = inventorySchema.partial().parse(inventoryData)
     const updated = await updateInventoryItem(id, validatedData)
 
     if (!updated) {
       return NextResponse.json({ success: false, error: 'Inventory item not found' }, { status: 404 })
     }
 
+    const takenByText = takenBy ? ` - Taken by: ${takenBy}` : ''
+    const actionText = body.stock !== undefined
+      ? `Updated stock for ${updated.name} (${updated.code}) [New Stock: ${updated.stock} ${updated.unit}]${takenByText}`
+      : `Updated inventory item ${updated.name} (${updated.code})`
+
     await createAuditLog({
-      action: `Updated inventory item ${updated.name} (${updated.code})`,
+      action: actionText,
       entity: updated.id,
       user: user.name,
       role: user.role,
